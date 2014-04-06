@@ -21,7 +21,7 @@ PlatWorld::~PlatWorld()  {
     delete m_ball;
     delete m_enemy;
     delete m_objectReader;
-    delete m_navReader;
+//    delete m_navReader;
     glDeleteTextures(m_textures.size(),m_textures.data());
 }
 
@@ -30,7 +30,7 @@ void PlatWorld::initialize()  {
     glEnable (GL_DEPTH_TEST);
     m_levelPath = QString::fromStdString("level_plain");
     m_objectReader = new OBJ();
-    m_navReader = new OBJ();
+//    m_navReader = new OBJ();
 
     m_camera = new Camera();
     m_camera->eye.x = 0.0f, m_camera->eye.y = 33.0f, m_camera->eye.z = 0.0f;
@@ -53,14 +53,12 @@ void PlatWorld::initialize()  {
     m_player->pos = Vector3(0,2,0);
     m_player->lives = 3;
     m_objectReader->read(m_levelPath.mid(0).append(QString::fromStdString(".obj")));
-    m_navReader->read(m_levelPath.mid(0).append(QString::fromStdString("_navmesh.obj")));
+//    m_navReader->read(m_levelPath.mid(0).append(QString::fromStdString("_navmesh.obj")));
 
-    generateGraph();
+//    generateGraph();
 
     m_textures.append(loadTexture(m_levelPath.mid(0).append(QString::fromStdString(".png"))));
-    m_textures.append(loadTexture(QString::fromStdString("../platformer/level_easy_channels.png")));
-    m_textures.append(loadTexture(QString::fromStdString("../platformer/message.png")));
-    m_textures.append(loadTexture(QString::fromStdString("../platformer/livesTemp.png")));
+    m_textures.append(loadTexture(QString::fromStdString("level_easy_channels.png")));
 }
 
 void PlatWorld::keyPressEvent(QKeyEvent *event) {
