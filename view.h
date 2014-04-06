@@ -4,9 +4,6 @@
 #include <qgl.h>
 #include <QTime>
 #include <QTimer>
-#include "camera.h"
-#include "scene.h"
-#include "player.h"
 
 class View : public QGLWidget
 {
@@ -19,12 +16,6 @@ public:
 private:
     QTime time;
     QTimer timer;
-
-    Camera m_camera;
-    Scene m_scene;
-    Player m_player;
-    bool injump;
-
 
     void initializeGL();
     void paintGL();

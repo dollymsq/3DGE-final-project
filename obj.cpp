@@ -53,7 +53,7 @@ bool OBJ::read(const QString &path)
 static QString str(const Vector2 &v) { return QString("%1 %2").arg(v.x).arg(v.y); }
 static QString str(const Vector3 &v) { return QString("%1 %2 %3").arg(v.x).arg(v.y).arg(v.z); }
 
-static QString str(const Index &i)
+static QString str(const OBJ::Index &i)
 {
     if (i.normal >= 0) {
         if (i.coord >= 0) return QString("%1/%2/%3").arg(i.vertex + 1).arg(i.coord + 1).arg(i.normal + 1);
@@ -85,7 +85,7 @@ inline int relativeIndex(int index, int count)
     return index >= 0 ? index - 1 : count + index;
 }
 
-Index OBJ::getIndex(const QString &str) const
+OBJ::Index OBJ::getIndex(const QString &str) const
 {
     QStringList parts = str.split('/');
     int vertex = parts.count() > 0 ? relativeIndex(parts[0].toInt(), vertices.count()) : -1;

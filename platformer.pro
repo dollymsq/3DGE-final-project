@@ -1,4 +1,4 @@
-QT += core gui opengl
+    QT += core gui opengl
 
 TARGET = platformer
 TEMPLATE = app
@@ -11,21 +11,19 @@ SOURCES += main.cpp \
     mainwindow.cpp \
     view.cpp \
     obj.cpp \
-    camera.cpp \
-    scene.cpp \
-    player.cpp
+    world.cpp \
+    platworld.cpp
 
 HEADERS += mainwindow.h \
     view.h \
     vector.h \
     obj.h \
+    world.h \
+    platworld.h \
     camera.h \
-    scene.h \
-    player.h
+    player.h \
+    vertex.h
 
 FORMS += mainwindow.ui
 
-LIBS += \-lGLU
-
-RESOURCES += \
-    source.qrc
+LIBS += -L/usr/local/lib -lGLU
