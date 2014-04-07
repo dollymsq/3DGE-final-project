@@ -1,0 +1,15 @@
+debug
+release
+
+*.user
+*.autosave
+
+build-*
+Makefile
+
+*.o
+
+.obj
+.rcc
+.ui
+.moc
