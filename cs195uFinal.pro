@@ -24,23 +24,28 @@ INCLUDEPATH += src
 DEPENDPATH += $$INCLUDEPATH
 
 SOURCES += \
-    src/game/world.cpp \
-    src/game/platworld.cpp \
+#    src/game/platworld.cpp \
     src/game/main.cpp \
-    src/window/mainwindow.cpp \
     src/assets/obj.cpp \
-    src/scene/view.cpp
+    src/scene/view.cpp \
+    src/window/openglwindow.cpp \
+    src/window/window.cpp \
+    src/scene/camera.cpp \
+    src/game/oldworld.cpp \
+    src/game/world.cpp
 
 HEADERS += \
     src/game/platworld.h \
     src/game/player.h \
     src/game/vertex.h \
-    src/game/world.h \
-    src/window/mainwindow.h \
     src/math/vector.h \
     src/assets/obj.h \
     src/scene/view.h \
-    src/scene/camera.h
+    src/window/openglwindow.h \
+    src/window/window.h \
+    src/scene/camera.h \
+    src/game/oldworld.h \
+    src/game/world.h
 
 RESOURCES += \
     $${RES}/resources.qrc

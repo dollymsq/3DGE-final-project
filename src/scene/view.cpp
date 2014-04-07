@@ -1,7 +1,7 @@
 #include "view.h"
 #include <QApplication>
 #include <QKeyEvent>
-#include "platworld.h"
+#include "game/platworld.h"
 
 PlatWorld *p;
 
@@ -19,7 +19,7 @@ View::View(QWidget *parent) : QGLWidget(parent)
     // The game loop is implemented using a timer
     connect(&timer, SIGNAL(timeout()), this, SLOT(tick()));
 
-    p = new PlatWorld(this);
+//    p = new PlatWorld(this);
 }
 
 View::~View()

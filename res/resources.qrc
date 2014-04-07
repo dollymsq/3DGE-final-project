@@ -1,9 +1,7 @@
 <RCC>
-    <qresource prefix="/textures">
+    <qresource prefix="/res">
         <file>textures/level_easy_channels.png</file>
         <file>textures/level_plain.png</file>
-    </qresource>
-    <qresource prefix="/meshes">
         <file>meshes/level_plain.obj</file>
     </qresource>
 </RCC>

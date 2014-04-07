@@ -1,7 +1,7 @@
 #ifndef PLATWORLD_H
 #define PLATWORLD_H
 
-#include "world.h"
+#include "oldworld.h"
 #include "scene/camera.h"
 #include "player.h"
 #include "assets/obj.h"
@@ -11,7 +11,7 @@
 
 class View;
 
-class PlatWorld : public World
+class PlatWorld : public OldWorld
 {
 public:
     PlatWorld(View *v);
