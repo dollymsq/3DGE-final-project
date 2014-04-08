@@ -111,7 +111,7 @@ void PlatWorld::mouseMoveEvent(QMouseEvent *event) {
 
     m_camera->yaw += diffX/yawConst;
     m_camera->yaw = fmod(m_camera->yaw,2.0f*M_PI);
-    qDebug() << m_camera->pitch;
+
     QCursor::setPos(m_viewSize.x / 2.0f, QCursor::pos().y());
 }
 
@@ -321,12 +321,12 @@ void PlatWorld::draw() {
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
 
-    glBindTexture(GL_TEXTURE_2D,m_textures.at(0));
-    glColor3f(1, 1, 1);
-    m_objectReader->draw();
-    glBindTexture(GL_TEXTURE_2D,m_textures.at(1));
+//    glBindTexture(GL_TEXTURE_2D,m_textures.at(0));
+//    m_objectReader->draw();
 
     //draw player
+//    glBindTexture(GL_TEXTURE_2D,m_textures.at(1));
+    glColor3f(1, 0, 0);
     glPushMatrix();
     glTranslatef(m_player->pos.x, m_player->pos.y, m_player->pos.z);
     glScalef(m_player->radius.x,m_player->radius.y,m_player->radius.z);
@@ -348,6 +348,18 @@ void PlatWorld::draw() {
     gluSphere(quad, 1, 32, 16);
     glColor3f(1,1,1);
     glPopMatrix();
+
+    // Draw grid
+    glColor4f(0, 0, 0, 0.25);
+    glBegin(GL_LINES);
+    for (int s = 20, i = -s; i <= s; i++) {
+        glVertex3f(i, 0, -s);
+        glVertex3f(i, 0, +s);
+        glVertex3f(-s, 0, i);
+        glVertex3f(+s, 0, i);
+    }
+    glEnd();
+    glColor3f(1,1,1);
 
 }
 
