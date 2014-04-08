@@ -1,25 +1,44 @@
 #ifndef PLATWORLD_H
 #define PLATWORLD_H
 
-#include "oldworld.h"
-#include "scene/camera.h"
-#include "player.h"
 #include "assets/obj.h"
+#include "scene/camera.h"
+
+#include "player.h"
 #include "vertex.h"
+
 #include <QHash>
 #include <QPair>
 
-class View;
+// OPENGL
 
-class PlatWorld : public OldWorld
+// WTF is this glew stuff?
+#define GLEW_STATIC
+#define GL_GLEXT_PROTOTYPES 1
+#include <QOpenGLFunctions>
+#include <GL/glext.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+
+// Qt
+#include <QApplication>
+#include <QMouseEvent>
+#include <QKeyEvent>
+#include <QImage>
+
+#include <cmath>
+#include <algorithm>
+
+class PlatWorld : protected QOpenGLFunctions
 {
 public:
-    PlatWorld(View *v);
+    PlatWorld();
     virtual ~PlatWorld();
-    void updateCamera();
-    void updateStuff(float seconds);
+
+    void initialize(int w, int h);
+    void update(float seconds);
     void draw();
-    void initialize();
+
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
@@ -28,6 +47,8 @@ public:
 
 private:
 
+    void updateCamera();
+    GLuint loadTexture(const QString &name);
     void collideEllipses(Player* &p,Vector3 &posAdd, int iters, bool bounce);
     void collideHelp(OBJ::Triangle &tri,Vector3 &curPoint, Vector3 &contactPoint,const Vector3 &endPoint, const Vector3 &startPoint, float &t, const Vector3 &squash);
     void generateGraph();
@@ -36,6 +57,7 @@ private:
     void doFunnel();
     void doCollisions(float time);
     float toRound(float toRound, float epsilon);
+
     float m_counter;
     int lose;
     OBJ::Triangle* findTri(Vector3 pt);
@@ -45,6 +67,7 @@ private:
     QString m_levelPath;
     OBJ* m_objectReader,* m_navReader;
     QVector<GLuint> m_textures;
+    Vector2 m_viewSize;
     QVector<Vector3> m_path;
     QVector<Vertex *> m_bfs;
     QHash<QPair<int, int>, QVector<OBJ::Triangle *> > m_edges;

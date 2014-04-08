@@ -57,7 +57,7 @@ GLuint Window::loadShader(GLenum type, const char *source)
 void Window::onTick(const float seconds)
 {
     OpenGLWindow::onTick(seconds);
-    m_camera.update(seconds);
+    m_world.update(seconds);
 }
 
 void Window::initialize()
@@ -74,10 +74,9 @@ void Window::initialize()
     m_camera.setAspectRatio(width()/height());
 
     // world
-//    m_world.init();
+    m_world.initialize(width(), height());
 
     // shaders
-
     m_program = new QOpenGLShaderProgram(this);
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
     m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
@@ -154,26 +153,32 @@ void Window::renderOpenGL()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    m_program->bind();
+    m_world.draw();
 
-    glm::mat4 mvp = m_camera.pMatrix * m_camera.vMatrix * glm::rotate(glm::mat4(1.0f),glm::radians(270.0f),glm::vec3(1.0f, 0.0f, 0.0f));
-    glUniformMatrix4fv(m_matrixUniform, 1, GL_FALSE, glm::value_ptr(mvp));
+    getErrors("rendering END");
 
-    m_program->setUniformValue("texture", 0);
+
+
+//    m_program->bind();
+
+//    glm::mat4 mvp = m_camera.pMatrix * m_camera.vMatrix * glm::rotate(glm::mat4(1.0f),glm::radians(270.0f),glm::vec3(1.0f, 0.0f, 0.0f));
+//    glUniformMatrix4fv(m_matrixUniform, 1, GL_FALSE, glm::value_ptr(mvp));
+
+//    m_program->setUniformValue("texture", 0);
 
 //    m_world.drawWorld(m_program);
 
-    glDisableVertexAttribArray(m_posAttr);
-    glDisableVertexAttribArray(m_texAttr);
+//    glDisableVertexAttribArray(m_posAttr);
+//    glDisableVertexAttribArray(m_texAttr);
 
-    m_program->release();
+//    m_program->release();
 
-    getErrors("rendering END");
+//    getErrors("rendering END");
 }
 
 void Window::mousePressEvent(QMouseEvent *event)
 {
-    Q_UNUSED(event);
+    m_world.mousePressEvent(event);
 }
 
 void Window::mouseMoveEvent(QMouseEvent *event)
@@ -184,6 +189,8 @@ void Window::mouseMoveEvent(QMouseEvent *event)
     // Note that it is important to check that deltaX and
     // deltaY are not zero before recentering the mouse, otherwise there will
     // be an infinite loop of mouse move events.
+    m_world.mouseMoveEvent(event);
+
     QPoint viewCenter(width() / 2, height() / 2);
 
     if (m_resetMouse) {
@@ -204,12 +211,14 @@ void Window::mouseMoveEvent(QMouseEvent *event)
 
 void Window::mouseReleaseEvent(QMouseEvent *event)
 {
-    Q_UNUSED(event);
+    m_world.mouseReleaseEvent(event);
 }
 
 void Window::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape) QWindow::close();
+
+    m_world.keyPressEvent(event);
 
     switch(event->key()) {
     case Qt::Key_W:
@@ -231,6 +240,8 @@ void Window::keyPressEvent(QKeyEvent *event)
 
 void Window::keyReleaseEvent(QKeyEvent *event)
 {
+    m_world.keyReleaseEvent(event);
+
     switch(event->key()) {
     case Qt::Key_W:
         m_camera.pressingForward = false;

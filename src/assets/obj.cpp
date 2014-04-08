@@ -17,7 +17,7 @@ void OBJ::draw() const
 bool OBJ::read(const QString &path)
 {
     // Open the file
-    QFile file(path);
+    QFile file(":/res/meshes/" + path);
     if (!file.open(QFile::ReadOnly | QFile::Text)) return false;
     QTextStream f(&file);
     QString line;

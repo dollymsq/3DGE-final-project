@@ -3,7 +3,7 @@
 
 #include "openglwindow.h"
 #include "scene/camera.h"
-#include "game/world.h"
+#include "game/platworld.h"
 
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtGui/QMouseEvent>
@@ -32,7 +32,7 @@ private:
     Camera m_camera;
 
     // World
-    World m_world;
+    PlatWorld m_world;
 
     inline void getErrors(QString location);
     GLuint loadShader(GLenum type, const char *source);

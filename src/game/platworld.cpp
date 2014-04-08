@@ -1,18 +1,6 @@
-#define GLEW_STATIC
-#define GL_GLEXT_PROTOTYPES 1
-
 #include "platworld.h"
-#include "scene/view.h"
-#include <QMouseEvent>
-#include <QKeyEvent>
-#include <QApplication>
-#include <GL/glext.h>
-#include <GL/gl.h>
-#include <qgl.h>
-#include <cmath>
-#include <algorithm>
 
-PlatWorld::PlatWorld(View *v) : World(v)  {
+PlatWorld::PlatWorld() {
 }
 
 PlatWorld::~PlatWorld()  {
@@ -25,7 +13,12 @@ PlatWorld::~PlatWorld()  {
     glDeleteTextures(m_textures.size(),m_textures.data());
 }
 
-void PlatWorld::initialize()  {
+void PlatWorld::initialize(int w, int h)  {
+    initializeOpenGLFunctions();
+
+    m_viewSize.x = w;
+    m_viewSize.y = h;
+
     glEnable(GL_TEXTURE_2D);
     glEnable (GL_DEPTH_TEST);
     m_levelPath = QString::fromStdString("level_plain");
@@ -61,6 +54,35 @@ void PlatWorld::initialize()  {
     m_textures.append(loadTexture(QString::fromStdString("level_easy_channels.png")));
 }
 
+/*
+ * Loads a texture!
+ */
+GLuint PlatWorld::loadTexture(const QString &name) {
+    QImage img(":res/textures/" + name);
+
+    if (img.isNull()) {
+        qCritical("Unable to load texture!");
+        return -1;
+    }
+
+    img = img.convertToFormat(QImage::Format_RGBA8888);
+
+    GLuint id;
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height(),
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+
+    return id;
+}
+
 void PlatWorld::keyPressEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_Escape) QApplication::quit();
     if (event->key() == Qt::Key_W) m_player->vel.z=m_player->vertVelConst;
@@ -82,25 +104,25 @@ void PlatWorld::mouseMoveEvent(QMouseEvent *event) {
     int x = event->x();
     int y = event->y();
 
-    int diffX = m_v->width()/2 - x;
-    int diffY = m_v->height()/2 - y;
-    m_camera->pitch = (-diffY/(m_v->height()/2.0f))*((M_PI/2)-.0001);
+    int diffX = m_viewSize.x/2 - x;
+    int diffY = m_viewSize.y/2 - y;
+    m_camera->pitch = (-diffY/(m_viewSize.y/2.0f))*((M_PI/2)-.0001);
 
     m_camera->yaw += diffX/yawConst;
     m_camera->yaw = fmod(m_camera->yaw,2.0f*M_PI);
-    QCursor::setPos(m_v->width() / 2, QCursor::pos().y());
+    QCursor::setPos(m_viewSize.x / 2, QCursor::pos().y());
 }
 
 void PlatWorld::mousePressEvent(QMouseEvent *event)  {
-
+    Q_UNUSED(event);
 }
 
 void PlatWorld::mouseReleaseEvent(QMouseEvent *event)  {
-
+    Q_UNUSED(event);
 }
 
 void PlatWorld::updateCamera()  {
-    float w = m_v->width(), h = m_v->height();
+    float w = m_viewSize.x, h = m_viewSize.y;
     float ratio = 1.0f * w / h;
 
     m_camera->center.x = m_player->pos.x;
@@ -123,7 +145,7 @@ void PlatWorld::updateCamera()  {
               m_camera->up.x, m_camera->up.y, m_camera->up.z);
 }
 
-void PlatWorld::updateStuff(float time)  {
+void PlatWorld::update(float time)  {
     Vector3 posAdd = Vector3(0,0,0);
 
     m_player->vel.y += m_grav*time;
@@ -298,6 +320,7 @@ Vector2 PlatWorld::quadratic(float a, float b, float c)  {
 
 void PlatWorld::draw() {
     glEnable(GL_TEXTURE_2D);
+
     glBindTexture(GL_TEXTURE_2D,m_textures.at(0));
     glColor3f(1, 1, 1);
     m_objectReader->draw();
@@ -326,7 +349,6 @@ void PlatWorld::draw() {
     glColor3f(1,1,1);
     glPopMatrix();
 
-    glEnable(GL_DEPTH_TEST);
 }
 
 void PlatWorld::generateGraph()  {
