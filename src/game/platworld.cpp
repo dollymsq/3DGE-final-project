@@ -1,5 +1,7 @@
 #include "platworld.h"
 
+#include <QDebug>
+
 PlatWorld::PlatWorld() {
 }
 
@@ -10,7 +12,6 @@ PlatWorld::~PlatWorld()  {
     delete m_enemy;
     delete m_objectReader;
 //    delete m_navReader;
-    glDeleteTextures(m_textures.size(),m_textures.data());
 }
 
 void PlatWorld::initialize(int w, int h)  {
@@ -104,13 +105,14 @@ void PlatWorld::mouseMoveEvent(QMouseEvent *event) {
     int x = event->x();
     int y = event->y();
 
-    int diffX = m_viewSize.x/2 - x;
-    int diffY = m_viewSize.y/2 - y;
-    m_camera->pitch = (-diffY/(m_viewSize.y/2.0f))*((M_PI/2)-.0001);
+    float diffX = m_viewSize.x/2.0f - x;
+    float diffY = m_viewSize.y/2.0f - y;
+    m_camera->pitch = (-diffY/(m_viewSize.y/2.0f))*((M_PI/2)-.0001f);
 
     m_camera->yaw += diffX/yawConst;
     m_camera->yaw = fmod(m_camera->yaw,2.0f*M_PI);
-    QCursor::setPos(m_viewSize.x / 2, QCursor::pos().y());
+    qDebug() << m_camera->pitch;
+    QCursor::setPos(m_viewSize.x / 2.0f, QCursor::pos().y());
 }
 
 void PlatWorld::mousePressEvent(QMouseEvent *event)  {
@@ -122,8 +124,7 @@ void PlatWorld::mouseReleaseEvent(QMouseEvent *event)  {
 }
 
 void PlatWorld::updateCamera()  {
-    float w = m_viewSize.x, h = m_viewSize.y;
-    float ratio = 1.0f * w / h;
+    float ratio = 1.0f * (m_viewSize.x / m_viewSize.y);
 
     m_camera->center.x = m_player->pos.x;
     m_camera->center.y = m_player->pos.y;
@@ -132,8 +133,6 @@ void PlatWorld::updateCamera()  {
     m_camera->eye.x = m_camera->center.x - 7.0f*cosf(m_camera->pitch)*sinf(m_camera->yaw);
     m_camera->eye.y = m_camera->center.y + 7.0f*sinf(m_camera->pitch);
     m_camera->eye.z = m_camera->center.z - 7.0f*cosf(m_camera->pitch)*cosf(m_camera->yaw);
-
-
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -320,6 +319,7 @@ Vector2 PlatWorld::quadratic(float a, float b, float c)  {
 
 void PlatWorld::draw() {
     glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DEPTH_TEST);
 
     glBindTexture(GL_TEXTURE_2D,m_textures.at(0));
     glColor3f(1, 1, 1);
@@ -642,6 +642,3 @@ void PlatWorld::doCollisions(float seconds) {
         }
     }
 }
-
-
-

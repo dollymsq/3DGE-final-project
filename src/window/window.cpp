@@ -191,22 +191,22 @@ void Window::mouseMoveEvent(QMouseEvent *event)
     // be an infinite loop of mouse move events.
     m_world.mouseMoveEvent(event);
 
-    QPoint viewCenter(width() / 2, height() / 2);
+//    QPoint viewCenter(width() / 2, height() / 2);
 
-    if (m_resetMouse) {
-        QCursor::setPos(mapToGlobal(viewCenter));
-        if (event->x() == viewCenter.x() && event->y() == viewCenter.y())
-            m_resetMouse = false;
-        return;
-    }
+//    if (m_resetMouse) {
+//        QCursor::setPos(mapToGlobal(viewCenter));
+//        if (event->x() == viewCenter.x() && event->y() == viewCenter.y())
+//            m_resetMouse = false;
+//        return;
+//    }
 
-    int deltaX = event->x() - viewCenter.x();
-    int deltaY = event->y() - viewCenter.y();
+//    int deltaX = event->x() - viewCenter.x();
+//    int deltaY = event->y() - viewCenter.y();
 
-    if (!deltaX && !deltaY) return;
-    QCursor::setPos(mapToGlobal(viewCenter));
+//    if (!deltaX && !deltaY) return;
+//    QCursor::setPos(mapToGlobal(viewCenter));
 
-    m_camera.mouseRotation(glm::vec2(deltaX, deltaY));
+//    m_camera.mouseRotation(glm::vec2(deltaX, deltaY));
 }
 
 void Window::mouseReleaseEvent(QMouseEvent *event)
