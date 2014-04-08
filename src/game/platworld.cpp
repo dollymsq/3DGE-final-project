@@ -361,6 +361,7 @@ void PlatWorld::draw() {
     glEnd();
     glColor3f(1,1,1);
 
+    glDisable(GL_DEPTH_TEST);
 }
 
 void PlatWorld::generateGraph()  {

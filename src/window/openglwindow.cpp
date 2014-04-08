@@ -35,7 +35,10 @@ void OpenGLWindow::render()
     renderOpenGL();
     m_painter->endNativePainting();
 
-    m_painter->setPen(Qt::red);
+//    m_painter->setBrush(QBrush(Qt::white));
+//    m_painter->drawRect(QRect(0,0, width(), height()));
+
+    m_painter->setPen(QPen(Qt::red));
     m_painter->setFont(QFont("Monospace", 11));
     m_painter->drawText(QRect(0,0,100,100), Qt::AlignCenter, "FPS: " + QString::number(m_fps));
 
