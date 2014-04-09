@@ -31,9 +31,9 @@ OpenGLWindow::~OpenGLWindow()
 
 void OpenGLWindow::render()
 {
-    m_painter->beginNativePainting();
+//    m_painter->beginNativePainting();
     renderOpenGL();
-    m_painter->endNativePainting();
+//    m_painter->endNativePainting();
 
 //    m_painter->setBrush(QBrush(Qt::white));
 //    m_painter->drawRect(QRect(0,0, width(), height()));
