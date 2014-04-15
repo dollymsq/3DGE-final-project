@@ -12,10 +12,12 @@
 #include <QElapsedTimer>
 
 #include <glm/ext.hpp>
+#include <QDebug>
 
 class OpenGLWindow : public QWindow, protected QOpenGLFunctions
 {
     Q_OBJECT
+
 public:
     explicit OpenGLWindow(QWindow *parent = 0);
     ~OpenGLWindow();
@@ -25,6 +27,9 @@ public:
     virtual void initialize() =0;
 
     void setAnimating(bool animating);
+
+    void showSubtitles(QString &info);
+
 
 public slots:
     void renderLater();
@@ -48,6 +53,7 @@ private:
 
     QElapsedTimer m_tickTimer;
     QElapsedTimer m_fpsTimer;
+    QElapsedTimer m_subTimer;
     int m_frames;
     int m_fps;
 

@@ -35,7 +35,8 @@ SOURCES += \
     src/window/openglwindow.cpp \
     src/window/window.cpp \
     src/scene/camera.cpp \
-    src/game/world.cpp
+    src/game/world.cpp \
+    src/game/puzzles.cpp
 
 HEADERS += \
     src/game/platworld.h \
@@ -46,7 +47,8 @@ HEADERS += \
     src/window/openglwindow.h \
     src/window/window.h \
     src/scene/camera.h \
-    src/game/world.h
+    src/game/world.h \
+    src/game/puzzles.h
 
 RESOURCES += \
     $${RES}/resources.qrc

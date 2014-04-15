@@ -60,7 +60,7 @@ void OpenGLWindow::onTick(const float seconds)
         m_fps = glm::round((m_frames * 1000.0f) / m_fpsTimer.elapsed());
         m_fpsTimer.restart();
         m_frames = 0;
-        qDebug() << "FPS:" << m_fps;
+//        qDebug() << "FPS:" << m_fps;
     }
 }
 
@@ -110,6 +110,7 @@ void OpenGLWindow::renderNow()
 
         m_tickTimer.start();
         m_fpsTimer.start();
+        m_subTimer.start();
     }
 
     m_context->makeCurrent(this);
@@ -154,3 +155,21 @@ void OpenGLWindow::setAnimating(bool animating)
     if (animating)
         renderLater();
 }
+
+void OpenGLWindow::showSubtitles(QString &info)
+{
+    if(info!= "")
+    {
+        m_painter->setPen(QPen(Qt::blue));
+        m_painter->setFont(QFont("Monospace", 11));
+        m_painter->drawText(QRect(0,100,this->width(),100), Qt::AlignLeft, info);
+        if(m_subTimer.elapsed()>3000)
+        {
+            info = "";
+        }
+    }
+    else
+        m_subTimer.restart();
+
+}
+

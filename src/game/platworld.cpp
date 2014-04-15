@@ -3,6 +3,7 @@
 #include <QDebug>
 
 PlatWorld::PlatWorld() {
+
 }
 
 PlatWorld::~PlatWorld()  {
@@ -11,6 +12,7 @@ PlatWorld::~PlatWorld()  {
     delete m_ball;
     delete m_enemy;
     delete m_objectReader;
+    delete m_puzzles;
 //    delete m_navReader;
 }
 
@@ -53,6 +55,11 @@ void PlatWorld::initialize(int w, int h)  {
 
     m_textures.append(loadTexture(m_levelPath.mid(0).append(QString::fromStdString(".png"))));
     m_textures.append(loadTexture(QString::fromStdString("level_easy_channels.png")));
+
+    //connect signal and slot
+    m_puzzles = new Puzzles();
+    QObject::connect(m_puzzles, SIGNAL(collisionReachedValue(QString)),
+                     m_puzzles, SLOT(storeSubtitles(QString)));
 }
 
 /*
@@ -170,6 +177,7 @@ void PlatWorld::update(float time)  {
         m_ball->vel.z -= ((m_ball->vel.z > 0) - (m_ball->vel.z < 0))*(sqrt(time*sqrt(time)*fabs(m_ball->vel.z)));
     }
 
+    //set velocity for ball
     doCollisions(time);
 
 //    doBfs();
@@ -181,6 +189,8 @@ void PlatWorld::update(float time)  {
     updateCamera();
 }
 
+
+//calculate the current position of player
 void PlatWorld::collideEllipses(Player* &p, Vector3 &posAdd, int iters, bool bounce)  {
 
     float rx = p->radius.x;
@@ -231,6 +241,7 @@ void PlatWorld::collideEllipses(Player* &p, Vector3 &posAdd, int iters, bool bou
     }
 }
 
+//the process of calculating intersection point
 void PlatWorld::collideHelp(OBJ::Triangle &tri,Vector3 &curPoint, Vector3 &contactPoint, const Vector3 &endPoint, const Vector3 &startPoint, float &t, const Vector3 &squash)  {
     float testT;
     // sphere-plane
@@ -641,13 +652,28 @@ void PlatWorld::doCollisions(float seconds) {
     vel.z+= -(m_player->vel.x)*sinf(m_camera->yaw) + (m_player->vel.z)*cosf(m_camera->yaw);
     vel.x+= (m_player->vel.x)*cosf(m_camera->yaw) + (m_player->vel.z)*sinf(m_camera->yaw);
     vel.y = 5;
+
+
     if(((m_player->pos - m_ball->pos).length()) < (2*m_ball->radius.x)) {
         m_ball->vel = vel;
         m_ball->m_jump = true;
         m_counter = 0;
+        m_puzzles->collisioncount++;
+
+//        qDebug() <<"vel"<<vel.x<<","<<vel.y<<","<<vel.z;
+//        qDebug() <<"count"<<m_puzzles->collisioncount;
+
     }
     else   {
         m_counter+=seconds;
+        if(m_puzzles->collisioncount > 0)
+        {
+            m_puzzles->collisioncount = 0;
+            emit m_puzzles->collisionReachedValue("Collided with the ball.");
+        }
+        //        qDebug() <<"vel"<<m_ball->vel.x<<","<<m_ball->vel.y<<","<<m_ball->vel.z;
+
+        //in 10 seconds it will be back to the origin place
         if(m_counter > 10) {
             m_ball->vel = Vector3(0,0,0);
             m_ball->pos = Vector3(2,2,0);

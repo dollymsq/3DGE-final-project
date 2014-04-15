@@ -6,6 +6,7 @@
 
 #include "player.h"
 #include "vertex.h"
+#include "puzzles.h"
 
 #include <QHash>
 #include <QPair>
@@ -29,8 +30,13 @@
 #include <cmath>
 #include <algorithm>
 
-class PlatWorld : protected QOpenGLFunctions
+#include <QObject>
+#include <QString>
+
+class PlatWorld : public QObject, protected QOpenGLFunctions
 {
+    Q_OBJECT
+
 public:
     PlatWorld();
     virtual ~PlatWorld();
@@ -44,6 +50,10 @@ public:
     void mouseReleaseEvent(QMouseEvent *event);
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
+
+public slots:
+
+
 
 private:
 
@@ -73,6 +83,10 @@ private:
     QHash<QPair<int, int>, QVector<OBJ::Triangle *> > m_edges;
     const float m_grav = -9.8,yawConst = 400;
     bool m_drawPath=true,m_gameOver=false,m_showHint = true;
+
+public:
+    Puzzles* m_puzzles;
+
 };
 
 #endif // PLATWORLD_H

@@ -55,6 +55,10 @@ private:
 
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
+
+//public slots:
+//    void showSubtitles(QString info);
+
 };
 
 #endif // WINDOW_H

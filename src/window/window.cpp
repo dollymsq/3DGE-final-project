@@ -155,6 +155,8 @@ void Window::renderOpenGL()
 
     m_world.draw();
 
+    OpenGLWindow::showSubtitles(m_world.m_puzzles->infoToPrint);
+
     getErrors("rendering END");
 
 
@@ -256,6 +258,11 @@ void Window::keyReleaseEvent(QKeyEvent *event)
         m_camera.pressingRight = false;
         break;
     }
-
     if (event->key() == Qt::Key_Space) m_camera.pressingJump = false;
 }
+
+//void Window::showSubtitles(QString info)
+//{
+////    OpenGLWindow::showSubtitles(info);
+
+//}
