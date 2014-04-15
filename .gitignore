@@ -2,6 +2,7 @@ debug
 release
 
 *.user
+*.user.*
 *.autosave
 
 build-*
