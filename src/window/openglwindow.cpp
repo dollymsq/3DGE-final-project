@@ -44,7 +44,7 @@ void OpenGLWindow::render()
 
     m_painter->setPen(Qt::red);
     m_painter->setFont(QFont("Monospace", 11));
-    m_painter->drawText(QRect(0,0,100,100), Qt::AlignCenter, "FPS: " + QString::number(m_fps));
+    m_painter->drawText(QRect(20,60,this->width(),100), Qt::AlignLeft, "FPS: " + QString::number(m_fps));
 
     m_painter->end();
 }
@@ -179,9 +179,13 @@ void OpenGLWindow::showSubtitles(QString &info) // eventually fading away
 
 void OpenGLWindow::showPermanentStat(QString &info)
 {
-    m_painter->setPen(QPen(Qt::blue));
+    m_painter->setPen(QPen(Qt::gray));
     m_painter->setFont(QFont("Monospace", 11));
-    m_painter->drawText(QRect(20,60,this->width(),100), Qt::AlignLeft, info);
+    m_painter->drawText(QRect(20,80,this->width(),100), Qt::AlignLeft, info);
+
+    m_painter->setPen(QPen(Qt::white));
+    m_painter->drawText(QRect(20,120,this->width(),100), Qt::AlignLeft, "Find the red box!");
+    m_painter->drawText(QRect(20,140,this->width(),100), Qt::AlignLeft, "Press space to shoot!");
 }
 
 

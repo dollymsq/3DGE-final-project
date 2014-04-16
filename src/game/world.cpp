@@ -48,7 +48,7 @@ void World::init()
     QObject::connect(m_puzzles, SIGNAL(collisionReachedValue(QString)),
                      m_puzzles, SLOT(storeSubtitles(QString)));
 
-    dynamicstring = "Number of Dynamics: " + QString::number(20);
+    dynamicstring = "Number of Balls Left: " + QString::number(20);
 
 }
 
@@ -72,15 +72,15 @@ void World::draw()
     glDisable(GL_LIGHTING);
 
     // Draw grid
-    glColor4f(0.5f, 0.5f, 0.5f, 0.25f);
-    glBegin(GL_LINES);
-    for (int s = 200, i = -s; i <= s; i += 10) {
-        glVertex3f(i /2.0f,  -0.0f, -s /2.0f);
-        glVertex3f(i /2.0f,  -0.0f, +s /2.0f);
-        glVertex3f(-s /2.0f, -0.0f, i /2.0f);
-        glVertex3f(+s /2.0f, -0.0f, i /2.0f);
-    }
-    glEnd();
+//    glColor4f(0.5f, 0.5f, 0.5f, 0.25f);
+//    glBegin(GL_LINES);
+//    for (int s = 200, i = -s; i <= s; i += 10) {
+//        glVertex3f(i /2.0f,  -0.0f, -s /2.0f);
+//        glVertex3f(i /2.0f,  -0.0f, +s /2.0f);
+//        glVertex3f(-s /2.0f, -0.0f, i /2.0f);
+//        glVertex3f(+s /2.0f, -0.0f, i /2.0f);
+//    }
+//    glEnd();
 
     glDisable(GL_DEPTH_TEST);
 }
