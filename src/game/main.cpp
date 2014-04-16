@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     Window window;
-    window.resize(640, 480);
+//    window.resize(640, 480);
     window.setTitle("cs195u Final");
 //    window.setVisibility(QWindow::FullScreen);
 
@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 //    window.setGeometry(0,0,screen.width(),screen.height());
 //#endif
 
-    window.show();
+    window.showFullScreen();
     // will tick according to sreen refresh screen rate
     window.setAnimating(true);
 

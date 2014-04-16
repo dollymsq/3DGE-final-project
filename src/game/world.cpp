@@ -16,7 +16,7 @@ World::World() :
 
 World::~World()
 {
-    //find a better place
+    //TODO: find a better place
     cleanupPhysics(true);
 }
 
@@ -26,7 +26,7 @@ void World::init()
     initPhysics(true);
 
     // Setup default render states
-    glClearColor(0.3f, 0.4f, 0.5f, 1.0);
+    glClearColor(0.1f, 0.1f, 0.1f, 1);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_COLOR_MATERIAL);
 
@@ -46,8 +46,10 @@ void World::init()
 
 void World::draw()
 {
-    glColor4f(0.4f, 0.4f, 0.4f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
 
+
+    glColor4f(0.0f, 0.1f, 0.1f, 1.0f);
 
     PxScene* scene;
     PxGetPhysics().getScenes(&scene,1);
@@ -59,20 +61,25 @@ void World::draw()
         renderActors(&actors[0], (PxU32)actors.size(), true);
     }
 
+    glDisable(GL_LIGHTING);
+
     // Draw grid
-//    glColor4f(0, 0, 0, 0.25);
-//    glBegin(GL_LINES);
-//    for (int s = 40, i = -s; i <= s; i++) {
-//        glVertex3f(i /2.0f, 0, -s /2.0f);
-//        glVertex3f(i /2.0f, 0, +s /2.0f);
-//        glVertex3f(-s /2.0f, 0, i /2.0f);
-//        glVertex3f(+s /2.0f, 0, i /2.0f);
-//    }
-//    glEnd();
+    glColor4f(0.5f, 0.5f, 0.5f, 0.25f);
+    glBegin(GL_LINES);
+    for (int s = 200, i = -s; i <= s; i += 10) {
+        glVertex3f(i /2.0f,  -0.0f, -s /2.0f);
+        glVertex3f(i /2.0f,  -0.0f, +s /2.0f);
+        glVertex3f(-s /2.0f, -0.0f, i /2.0f);
+        glVertex3f(+s /2.0f, -0.0f, i /2.0f);
+    }
+    glEnd();
+
+    glDisable(GL_DEPTH_TEST);
 }
 
 PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity)
 {
+    gMaterial = gPhysics->createMaterial(0.1f,0.1f,0.01f);
     PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, geometry, *gMaterial, 10.0f);
     dynamic->setAngularDamping(0.5f);
     dynamic->setLinearVelocity(velocity);
@@ -84,17 +91,40 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
 void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 {
     PxShape* shape = gPhysics->createShape(PxBoxGeometry(halfExtent, halfExtent, halfExtent), *gMaterial);
+
     for(PxU32 i=0; i<size;i++)
     {
-        for(PxU32 j=0;j<size-i;j++)
-        {
-            PxTransform localTm(PxVec3(PxReal(j*2) - PxReal(size-i), PxReal(i*2+1), 0) * halfExtent);
-            PxRigidDynamic* body = gPhysics->createRigidDynamic(t.transform(localTm));
-            body->attachShape(*shape);
-            PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
-            gScene->addActor(*body);
-        }
+	    for(PxU32 j=0;j<size-i;j++)
+	    {
+		    for(PxU32 k=0;k<size;k++)
+		    {
+			    PxTransform localTm(PxVec3(PxReal(j*2) - PxReal(size-i), PxReal(i*2+1), PxReal(i*2) - PxReal(size-k)) * halfExtent);
+			    PxRigidDynamic* body = gPhysics->createRigidDynamic(t.transform(localTm));
+			    body->attachShape(*shape);
+			    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
+			    gScene->addActor(*body);
+		    }
+	    }
+
     }
+
+//    for(PxU32 x=0; x<size;x++)
+//    {
+//        for(PxU32 y=0;y<size;y++)
+//        {
+//            for(PxU32 z=0;z<size;z++)
+//            {
+//                PxTransform localTm(PxVec3(x + 0.1f, y + 0.4f, z + 0.1f) * (halfExtent * 2));
+
+//                std::cout << x << " " << y << " " << z << std::endl;
+
+//                PxRigidDynamic* body = gPhysics->createRigidDynamic(t.transform(localTm));
+//                body->attachShape(*shape);
+//                PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
+//                gScene->addActor(*body);
+//            }
+//        }
+//    }
     shape->release();
 }
 
@@ -123,8 +153,8 @@ void World::initPhysics(bool interactive)
     PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0,1,0,0), *gMaterial);
     gScene->addActor(*groundPlane);
 
-    for(PxU32 i=0;i<5;i++)
-        createStack(PxTransform(PxVec3(0,0,stackZ-=10.0f)), 10, 2.0f);
+//    for(PxU32 i=0;i<3;i++)
+        createStack(PxTransform(PxVec3(0,0,stackZ-=10.0f)), 5, 2.0f);
 
     if(!interactive)
         createDynamic(PxTransform(PxVec3(0,40,100)), PxSphereGeometry(10), PxVec3(0,-50,-100));
@@ -133,7 +163,7 @@ void World::initPhysics(bool interactive)
 void World::stepPhysics(bool interactive)
 {
     PX_UNUSED(interactive)
-    gScene->simulate(1.0f/30.0f);
+    gScene->simulate(1.0f/20.0f);
     gScene->fetchResults(true);
 }
 
@@ -152,7 +182,6 @@ void World::cleanupPhysics(bool interactive)
 
 void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shadows)
 {
-    glEnable(GL_DEPTH_TEST);
 
     PxShape* shapes[MAX_NUM_ACTOR_SHAPES];
     for(PxU32 i=0;i<numActors;i++)
@@ -170,10 +199,12 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
             // render object
             glPushMatrix();
             glMultMatrixf((float*)&shapePose);
-            if(sleeping)
-                glColor4f(0.75f, 1.0f, 0.75f, 1.0f);
-            else
-                glColor4f(0.0f, 0.75f, 0.0f, 1.0f);
+            glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
+
+//            if(sleeping)
+//                glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
+//            else
+//                glColor4f(0.0f, 0.75f, 0.0f, 1.0f);
             renderGeometry(h);
             glPopMatrix();
 
@@ -186,7 +217,7 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                 glMultMatrixf(shadowMat);
                 glMultMatrixf((float*)&shapePose);
                 glDisable(GL_LIGHTING);
-                glColor4f(0.1f, 0.2f, 0.3f, 1.0f);
+                glColor4f(0.0f, 0.05f, 0.08f, 1);
                 renderGeometry(h);
                 glEnable(GL_LIGHTING);
                 glPopMatrix();
@@ -194,7 +225,6 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
         }
     }
 
-    glDisable(GL_DEPTH_TEST);
 }
 
 void World::renderGeometry(const PxGeometryHolder& h)
@@ -219,13 +249,21 @@ void World::renderGeometry(const PxGeometryHolder& h)
             glPopMatrix();
         }
         break;
-    default:
-
+    case PxGeometryType::eCAPSULE:
+    case PxGeometryType::eCONVEXMESH:
+    case PxGeometryType::eGEOMETRY_COUNT:
+    case PxGeometryType::eHEIGHTFIELD:
+    case PxGeometryType::ePLANE:
+    case PxGeometryType::eTRIANGLEMESH:
+        // TODO: implement
+        break;
+    case PxGeometryType::eINVALID:
+        qCritical("invalid actor in renderGeometry");
         break;
     }
 }
 
 void World::tick(float seconds)
 {
-    stepPhysics(true);
+//    stepPhysics(true);
 }
