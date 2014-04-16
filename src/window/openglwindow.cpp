@@ -8,20 +8,26 @@ OpenGLWindow::OpenGLWindow(QWindow *parent)
     , m_context(0)
     , m_device(0)
     , m_frames(0)
-    , m_fps(0)
 {
     setSurfaceType(QWindow::OpenGLSurface);
 
     QSurfaceFormat format;
-    format.setSamples(16); // multi-sampling
+    format.setSamples(8); // multi-sampling
     format.setRenderableType(QSurfaceFormat::OpenGL); // change to opengles on mobile
 //    format.setProfile(QSurfaceFormat::CoreProfile);
 //    format.setMajorVersion(4);
 //    format.setMinorVersion(3);
+    format.setDepthBufferSize(1);
     setFormat(format);
 
     // Hide the cursor since this is a fullscreen app
     setCursor(Qt::BlankCursor);
+
+    // ??? : not needed
+    // View needs all mouse move events, not just mouse drag events
+    //setMouseTracking(true);
+    // View needs keyboard focus
+    //setFocusPolicy(Qt::StrongFocus);
 }
 
 OpenGLWindow::~OpenGLWindow()
@@ -31,14 +37,11 @@ OpenGLWindow::~OpenGLWindow()
 
 void OpenGLWindow::render()
 {
-//    m_painter->beginNativePainting();
+    m_painter->beginNativePainting();
     renderOpenGL();
-//    m_painter->endNativePainting();
+    m_painter->endNativePainting();
 
-//    m_painter->setBrush(QBrush(Qt::white));
-//    m_painter->drawRect(QRect(0,0, width(), height()));
-
-    m_painter->setPen(QPen(Qt::red));
+    m_painter->setPen(Qt::red);
     m_painter->setFont(QFont("Monospace", 11));
     m_painter->drawText(QRect(0,0,100,100), Qt::AlignCenter, "FPS: " + QString::number(m_fps));
 
@@ -60,7 +63,7 @@ void OpenGLWindow::onTick(const float seconds)
         m_fps = glm::round((m_frames * 1000.0f) / m_fpsTimer.elapsed());
         m_fpsTimer.restart();
         m_frames = 0;
-//        qDebug() << "FPS:" << m_fps;
+        qDebug() << "FPS:" << m_fps;
     }
 }
 
@@ -110,7 +113,6 @@ void OpenGLWindow::renderNow()
 
         m_tickTimer.start();
         m_fpsTimer.start();
-        m_subTimer.start();
     }
 
     m_context->makeCurrent(this);
@@ -154,22 +156,5 @@ void OpenGLWindow::setAnimating(bool animating)
 
     if (animating)
         renderLater();
-}
-
-void OpenGLWindow::showSubtitles(QString &info)
-{
-    if(info!= "")
-    {
-        m_painter->setPen(QPen(Qt::blue));
-        m_painter->setFont(QFont("Monospace", 11));
-        m_painter->drawText(QRect(0,100,this->width(),100), Qt::AlignLeft, info);
-        if(m_subTimer.elapsed()>3000)
-        {
-            info = "";
-        }
-    }
-    else
-        m_subTimer.restart();
-
 }
 

@@ -7,7 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/ext.hpp>
 
-#include <iostream>
+#include <QDebug>
 
 class Camera
 {
@@ -31,13 +31,9 @@ public:
     void mouseRotation(glm::vec2 delta);
     void update(float seconds);
 
-    // DEPRECATED : DONT USE
-    glm::vec3 eye, center, up;
-    float angle, near, far, yaw = 0.0f, pitch = 0.0f;
-
-private:
-    glm::vec3 m_position;
     glm::vec3 m_lookAt;
+    glm::vec3 m_position;
+private:
     glm::vec3 m_up;
 
     glm::vec2 m_rotation;

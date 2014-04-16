@@ -3,7 +3,14 @@
 #include <QFile>
 #include <QTextStream>
 
-void OBJ::draw() const
+Obj::Obj(const QString &path)
+{
+    if (!read(path)) {
+        qCritical("unable to load obj!");
+    }
+}
+
+void Obj::draw() const
 {
     glBegin(GL_TRIANGLES);
     foreach (const Triangle &tri, triangles) {
@@ -14,10 +21,10 @@ void OBJ::draw() const
     glEnd();
 }
 
-bool OBJ::read(const QString &path)
+bool Obj::read(const QString &path)
 {
     // Open the file
-    QFile file(":/res/meshes/" + path);
+    QFile file(":/meshes/" + path);
     if (!file.open(QFile::ReadOnly | QFile::Text)) return false;
     QTextStream f(&file);
     QString line;
@@ -30,11 +37,11 @@ bool OBJ::read(const QString &path)
         if (parts.isEmpty()) continue;
 
         if (parts[0] == "v" && parts.count() >= 4) {
-            vertices += Vector3(parts[1].toFloat(), parts[2].toFloat(), parts[3].toFloat());
+            vertices += glm::vec3(parts[1].toFloat(), parts[2].toFloat(), parts[3].toFloat());
         } else if (parts[0] == "vt" && parts.count() >= 3) {
-            coords += Vector2(parts[1].toFloat(), parts[2].toFloat());
+            coords += glm::vec2(parts[1].toFloat(), parts[2].toFloat());
         } else if (parts[0] == "vn" && parts.count() >= 4) {
-            normals += Vector3(parts[1].toFloat(), parts[2].toFloat(), parts[3].toFloat());
+            normals += glm::vec3(parts[1].toFloat(), parts[2].toFloat(), parts[3].toFloat());
         } else if (parts[0] == "f" && parts.count() >= 4) {
             // Convert polygons into triangle fans
             Index a = getIndex(parts[1]);
@@ -50,10 +57,10 @@ bool OBJ::read(const QString &path)
     return true;
 }
 
-static QString str(const Vector2 &v) { return QString("%1 %2").arg(v.x).arg(v.y); }
-static QString str(const Vector3 &v) { return QString("%1 %2 %3").arg(v.x).arg(v.y).arg(v.z); }
+static QString str(const glm::vec2 &v) { return QString("%1 %2").arg(v.x).arg(v.y); }
+static QString str(const glm::vec3 &v) { return QString("%1 %2 %3").arg(v.x).arg(v.y).arg(v.z); }
 
-static QString str(const OBJ::Index &i)
+static QString str(const Obj::Index &i)
 {
     if (i.normal >= 0) {
         if (i.coord >= 0) return QString("%1/%2/%3").arg(i.vertex + 1).arg(i.coord + 1).arg(i.normal + 1);
@@ -64,7 +71,7 @@ static QString str(const OBJ::Index &i)
     }
 }
 
-bool OBJ::write(const QString &path) const
+bool Obj::write(const QString &path) const
 {
     // Open the file
     QFile file(path);
@@ -72,9 +79,9 @@ bool OBJ::write(const QString &path) const
     QTextStream f(&file);
 
     // Write the file
-    foreach (const Vector3 &vertex, vertices) f << "v " << str(vertex) << '\n';
-    foreach (const Vector2 &coord, coords) f << "vt " << str(coord) << '\n';
-    foreach (const Vector3 &normal, normals) f << "vn " << str(normal) << '\n';
+    foreach (const glm::vec3 &vertex, vertices) f << "v " << str(vertex) << '\n';
+    foreach (const glm::vec2 &coord, coords) f << "vt " << str(coord) << '\n';
+    foreach (const glm::vec3 &normal, normals) f << "vn " << str(normal) << '\n';
     foreach (const Triangle &tri, triangles) f << "f " << str(tri.a) << ' ' << str(tri.b) << ' ' << str(tri.c) << '\n';
 
     return true;
@@ -85,7 +92,7 @@ inline int relativeIndex(int index, int count)
     return index >= 0 ? index - 1 : count + index;
 }
 
-OBJ::Index OBJ::getIndex(const QString &str) const
+Obj::Index Obj::getIndex(const QString &str) const
 {
     QStringList parts = str.split('/');
     int vertex = parts.count() > 0 ? relativeIndex(parts[0].toInt(), vertices.count()) : -1;
@@ -94,9 +101,9 @@ OBJ::Index OBJ::getIndex(const QString &str) const
     return Index(vertex, coord, normal);
 }
 
-void OBJ::drawIndex(const Index &index) const
+void Obj::drawIndex(const Index &index) const
 {
-    if (index.coord >= 0 && index.coord < coords.count()) glTexCoord2fv(coords[index.coord].xy);
-    if (index.normal >= 0 && index.normal < normals.count()) glNormal3fv(normals[index.normal].xyz);
-    if (index.vertex >= 0 && index.vertex < vertices.count()) glVertex3fv(vertices[index.vertex].xyz);
+    if (index.coord >= 0 && index.coord < coords.count()) glTexCoord2fv(glm::value_ptr(coords[index.coord]));
+    if (index.normal >= 0 && index.normal < normals.count()) glNormal3fv(glm::value_ptr(normals[index.normal]));
+    if (index.vertex >= 0 && index.vertex < vertices.count()) glVertex3fv(glm::value_ptr(vertices[index.vertex]));
 }

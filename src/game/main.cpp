@@ -13,10 +13,10 @@ int main(int argc, char *argv[])
     window.setTitle("cs195u Final");
 //    window.setVisibility(QWindow::FullScreen);
 
-#ifdef Q_OS_MAC
-    QSize screen = window.screen()->size();
-    window.setGeometry(0,0,screen.width(),screen.height());
-#endif
+//#ifdef Q_OS_MAC
+//    QSize screen = window.screen()->size();
+//    window.setGeometry(0,0,screen.width(),screen.height());
+//#endif
 
     window.show();
     // will tick according to sreen refresh screen rate

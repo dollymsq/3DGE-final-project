@@ -2,7 +2,6 @@
 
 Window::Window()
     : m_resetMouse(true)
-    , m_program(0)
 {
 
 }
@@ -12,52 +11,11 @@ Window::~Window()
 
 }
 
-// TODO: move shaders to resources
-
-static const char *vertexShaderSource =
-    "#ifdef GL_ES\n"
-    "precision highp float;\n"
-    "precision highp int;\n"
-    "precision lowp sampler2D;\n"
-    "#endif\n"
-    "attribute highp vec3 a_position;\n"
-    ""
-    "attribute lowp vec2 a_texcoord;\n"
-    "varying lowp vec2 v_texcoord;\n"
-    ""
-    "uniform highp mat4 matrix;\n"
-    ""
-    "void main() {\n"
-    "   v_texcoord = a_texcoord;\n"
-    "   gl_Position = matrix * vec4(a_position, 1);\n"
-    "}\n";
-
-static const char *fragmentShaderSource =
-    "#ifdef GL_ES\n"
-    "precision highp float;\n"
-    "precision highp int;\n"
-    "precision lowp sampler2D;\n"
-    "#endif\n"
-    "uniform lowp sampler2D texture;\n"
-    "varying lowp vec2 v_texcoord;\n"
-    ""
-    "void main() {\n"
-    "   vec4 c = texture2D(texture, v_texcoord);\n"
-    "   gl_FragColor = c;\n"
-    "}\n";
-
-GLuint Window::loadShader(GLenum type, const char *source)
-{
-    GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, 0);
-    glCompileShader(shader);
-    return shader;
-}
-
 void Window::onTick(const float seconds)
 {
     OpenGLWindow::onTick(seconds);
-    m_world.update(seconds);
+    m_camera.update(seconds);
+    m_world.tick(seconds);
 }
 
 void Window::initialize()
@@ -74,42 +32,8 @@ void Window::initialize()
     m_camera.setAspectRatio(width()/height());
 
     // world
-    m_world.initialize(width(), height());
+    m_world.init();
 
-    // shaders
-    m_program = new QOpenGLShaderProgram(this);
-    m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
-    m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
-    m_program->link();
-
-    m_posAttr = m_program->attributeLocation("a_position");
-    m_texAttr = m_program->attributeLocation("a_texcoord");
-
-    m_matrixUniform = m_program->uniformLocation("matrix");
-    m_textureUniform = m_program->uniformLocation("texture");
-
-    // textures
-
-    QImage img(":res/textures/level_plain.png");
-
-    if (img.isNull()) {
-        qCritical("Unable to load texture!");
-        return;
-    }
-
-    img = img.convertToFormat(QImage::Format_RGBA8888);
-
-    glGenTextures(1, &m_texture);
-    glBindTexture(GL_TEXTURE_2D, m_texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height(),
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
 
     getErrors("initialize");
 }
@@ -145,7 +69,6 @@ void Window::getErrors(QString location) {
 
 void Window::renderOpenGL()
 {
-
     getErrors("rendering START");
 
     const qreal retinaScale = devicePixelRatio();
@@ -153,34 +76,21 @@ void Window::renderOpenGL()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glLoadMatrixf(glm::value_ptr(m_camera.pMatrix));
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glLoadMatrixf(glm::value_ptr(m_camera.vMatrix));
+
     m_world.draw();
 
-    OpenGLWindow::showSubtitles(m_world.m_puzzles->infoToPrint);
-
     getErrors("rendering END");
-
-
-
-//    m_program->bind();
-
-//    glm::mat4 mvp = m_camera.pMatrix * m_camera.vMatrix * glm::rotate(glm::mat4(1.0f),glm::radians(270.0f),glm::vec3(1.0f, 0.0f, 0.0f));
-//    glUniformMatrix4fv(m_matrixUniform, 1, GL_FALSE, glm::value_ptr(mvp));
-
-//    m_program->setUniformValue("texture", 0);
-
-//    m_world.drawWorld(m_program);
-
-//    glDisableVertexAttribArray(m_posAttr);
-//    glDisableVertexAttribArray(m_texAttr);
-
-//    m_program->release();
-
-//    getErrors("rendering END");
 }
 
 void Window::mousePressEvent(QMouseEvent *event)
 {
-    m_world.mousePressEvent(event);
+    Q_UNUSED(event);
 }
 
 void Window::mouseMoveEvent(QMouseEvent *event)
@@ -191,36 +101,32 @@ void Window::mouseMoveEvent(QMouseEvent *event)
     // Note that it is important to check that deltaX and
     // deltaY are not zero before recentering the mouse, otherwise there will
     // be an infinite loop of mouse move events.
-    m_world.mouseMoveEvent(event);
+    QPoint viewCenter(width() / 2, height() / 2);
 
-//    QPoint viewCenter(width() / 2, height() / 2);
+    if (m_resetMouse) {
+        QCursor::setPos(mapToGlobal(viewCenter));
+        if (event->x() == viewCenter.x() && event->y() == viewCenter.y())
+            m_resetMouse = false;
+        return;
+    }
 
-//    if (m_resetMouse) {
-//        QCursor::setPos(mapToGlobal(viewCenter));
-//        if (event->x() == viewCenter.x() && event->y() == viewCenter.y())
-//            m_resetMouse = false;
-//        return;
-//    }
+    int deltaX = event->x() - viewCenter.x();
+    int deltaY = event->y() - viewCenter.y();
 
-//    int deltaX = event->x() - viewCenter.x();
-//    int deltaY = event->y() - viewCenter.y();
+    if (!deltaX && !deltaY) return;
+    QCursor::setPos(mapToGlobal(viewCenter));
 
-//    if (!deltaX && !deltaY) return;
-//    QCursor::setPos(mapToGlobal(viewCenter));
-
-//    m_camera.mouseRotation(glm::vec2(deltaX, deltaY));
+    m_camera.mouseRotation(glm::vec2(deltaX, deltaY));
 }
 
 void Window::mouseReleaseEvent(QMouseEvent *event)
 {
-    m_world.mouseReleaseEvent(event);
+    Q_UNUSED(event);
 }
 
 void Window::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape) QWindow::close();
-
-    m_world.keyPressEvent(event);
 
     switch(event->key()) {
     case Qt::Key_W:
@@ -237,13 +143,30 @@ void Window::keyPressEvent(QKeyEvent *event)
         break;
     }
 
-    if (event->key() == Qt::Key_Space) m_camera.pressingJump = true;
+
+    if (event->key() == Qt::Key_Space) {
+        PxTransform transform;
+        PxVec3 dir(m_camera.m_lookAt.x, m_camera.m_lookAt.y,m_camera.m_lookAt.z);
+        PxVec3 eye(m_camera.m_position.x, m_camera.m_position.y,m_camera.m_position.z);
+
+        dir = dir - eye;
+        dir.normalize();
+
+        PxVec3 viewY = dir.cross(PxVec3(0,1,0));
+
+        if(viewY.normalize()<1e-6f) {
+            transform = PxTransform(eye);
+        } else {
+            PxMat33 m(dir.cross(viewY), viewY, -dir);
+            transform = PxTransform(eye, PxQuat(m));
+        }
+
+        m_world.createDynamic(transform, PxSphereGeometry(3.0f), dir*100);
+    }
 }
 
 void Window::keyReleaseEvent(QKeyEvent *event)
 {
-    m_world.keyReleaseEvent(event);
-
     switch(event->key()) {
     case Qt::Key_W:
         m_camera.pressingForward = false;
@@ -258,11 +181,6 @@ void Window::keyReleaseEvent(QKeyEvent *event)
         m_camera.pressingRight = false;
         break;
     }
+
     if (event->key() == Qt::Key_Space) m_camera.pressingJump = false;
 }
-
-//void Window::showSubtitles(QString info)
-//{
-////    OpenGLWindow::showSubtitles(info);
-
-//}

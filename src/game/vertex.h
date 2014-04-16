@@ -4,7 +4,7 @@
 #include "assets/obj.h"
 
 struct Vertex  {
-    OBJ::Triangle *tri;
+    Obj::Triangle *tri;
     Vertex* prev=0,*after;
     Vector3 v0,v1;
 };
