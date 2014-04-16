@@ -29,7 +29,7 @@ public:
     void setAnimating(bool animating);
 
     void showSubtitles(QString &info);
-
+    void showPermanentStat(QString &info);
 
 public slots:
     void renderLater();
