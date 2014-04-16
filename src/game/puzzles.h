@@ -16,10 +16,12 @@ public:
     QString infoToPrint;
 
 public slots:
-    void storeSubtitles(QString);
+    void storeSubtitles(QString info);
+    void OnePuzzleSolved();
 
 signals:
     void collisionReachedValue(QString);
+    void puzzlesReachedValue(QString);
 };
 
 #endif // PUZZLES_H

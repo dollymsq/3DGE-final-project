@@ -14,6 +14,7 @@
 #include "assets/obj.h"
 
 #include <iostream>
+#include "puzzles.h"
 
 // connection for physx debugger
 #define PVD_HOST "127.0.0.1"
@@ -21,8 +22,10 @@
 #include <PxPhysicsAPI.h>
 using namespace physx;
 
-class World : protected QOpenGLFunctions
+class World : public QObject, protected QOpenGLFunctions
 {
+    Q_OBJECT
+
 public:
     World();
     virtual ~World();
@@ -33,6 +36,12 @@ public:
 
 
     PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0));
+
+    int numberOfDynamic;
+    QString dynamicstring;
+    Puzzles *m_puzzles;
+
+
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
     void initPhysics(bool interactive);
@@ -58,7 +67,9 @@ private:
 
     PxVisualDebuggerConnection* gConnection;
 
+
     PxReal stackZ;
+
 };
 
 #endif // WORLD_H

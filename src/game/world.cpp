@@ -11,13 +11,14 @@ World::World() :
     gConnection(NULL),
     stackZ(10.0f)
 {
-
+    m_puzzles = new Puzzles();
 }
 
 World::~World()
 {
     //TODO: find a better place
     cleanupPhysics(true);
+    delete m_puzzles;
 }
 
 void World::init()
@@ -41,6 +42,12 @@ void World::init()
     glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
     glLightfv(GL_LIGHT0, GL_POSITION, position);
     glEnable(GL_LIGHT0);
+
+    numberOfDynamic = 20;
+    QObject::connect(m_puzzles, SIGNAL(collisionReachedValue(QString)),
+                     m_puzzles, SLOT(storeSubtitles(QString)));
+
+    dynamicstring = "Number of Dynamics: " + QString::number(20);
 
 }
 
@@ -79,12 +86,22 @@ void World::draw()
 
 PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity)
 {
-    gMaterial = gPhysics->createMaterial(0.1f,0.1f,0.01f);
-    PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, geometry, *gMaterial, 10.0f);
-    dynamic->setAngularDamping(0.5f);
-    dynamic->setLinearVelocity(velocity);
-    gScene->addActor(*dynamic);
-    return dynamic;
+    if(numberOfDynamic <= 0)
+    {
+        dynamicstring = "Number of Dynamics: " + QString::number(0);
+    }
+
+    else if(numberOfDynamic > 0)
+    {
+        numberOfDynamic -- ;
+
+        PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, geometry, *gMaterial, 10.0f);
+        dynamic->setAngularDamping(0.5f);
+        dynamic->setLinearVelocity(velocity);
+        gScene->addActor(*dynamic);
+        dynamicstring = "Number of Dynamics: " + QString::number(numberOfDynamic);
+        return dynamic;
+    }
 }
 
 
@@ -208,7 +225,7 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
             renderGeometry(h);
             glPopMatrix();
 
-            // notice this are really fake sahdows
+            // notice this are really fake shadows
             if(shadows)
             {
                 const PxVec3 shadowDir(0.0f, -0.7071067f, -0.7071067f);
