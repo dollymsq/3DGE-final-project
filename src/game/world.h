@@ -54,6 +54,8 @@ private:
     Obj sphereMesh;
     Obj cubeMesh;
 
+    PxRigidDynamic         *m_redBlock;
+
     PxDefaultAllocator		gAllocator;
     PxDefaultErrorCallback	gErrorCallback;
 

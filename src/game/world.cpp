@@ -9,6 +9,7 @@ World::World() :
     gScene(NULL),
     gMaterial(NULL),
     gConnection(NULL),
+    m_redBlock(NULL),
     stackZ(10.0f)
 {
     m_puzzles = new Puzzles();
@@ -93,7 +94,7 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
 
     else if(numberOfDynamic > 0)
     {
-        numberOfDynamic -- ;
+        numberOfDynamic--;
 
         PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, geometry, *gMaterial, 10.0f);
         dynamic->setAngularDamping(0.5f);
@@ -120,6 +121,12 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
                                           -PxReal(k) + PxReal(size-k))
                                            * halfExtent);
 			    PxRigidDynamic* body = gPhysics->createRigidDynamic(t.transform(localTm));
+
+                if (i == 2 && j == 1 && k == 1) {
+                    if (!m_redBlock)
+                        m_redBlock = body;
+                }
+
 			    body->attachShape(*shape);
 			    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
 			    gScene->addActor(*body);
@@ -128,23 +135,6 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 
     }
 
-//    for(PxU32 x=0; x<size;x++)
-//    {
-//        for(PxU32 y=0;y<size;y++)
-//        {
-//            for(PxU32 z=0;z<size;z++)
-//            {
-//                PxTransform localTm(PxVec3(x + 0.1f, y + 0.4f, z + 0.1f) * (halfExtent * 2));
-
-//                std::cout << x << " " << y << " " << z << std::endl;
-
-//                PxRigidDynamic* body = gPhysics->createRigidDynamic(t.transform(localTm));
-//                body->attachShape(*shape);
-//                PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
-//                gScene->addActor(*body);
-//            }
-//        }
-//    }
     shape->release();
 }
 
@@ -222,7 +212,11 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
             // render object
             glPushMatrix();
             glMultMatrixf((float*)&shapePose);
-            glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
+
+            if (actors[i] == m_redBlock)
+                glColor4f(0.9f, 0, 0, 1.0f);
+            else
+                glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 
 //            if(sleeping)
 //                glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
