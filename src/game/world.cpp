@@ -10,7 +10,9 @@ World::World() :
     gMaterial(NULL),
     gConnection(NULL),
     m_redBlock(NULL),
-    stackZ(10.0f)
+    stackZ(10.0f),
+    m_redBlockPosInit(false),
+    m_puzzleSolved(false)
 {
     m_puzzles = new Puzzles();
 }
@@ -124,7 +126,13 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 
                 if (i == 2 && j == 1 && k == 1) {
                     if (!m_redBlock)
+                    {
                         m_redBlock = body;
+                        m_redBlockOriPos = PxVec3(PxReal(j*2) - PxReal(size-i),
+                                                  PxReal(i*2+1),
+                                                 -PxReal(k) + PxReal(size-k))
+                                                  * halfExtent;
+                    }
                 }
 
 			    body->attachShape(*shape);
@@ -214,7 +222,20 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
             glMultMatrixf((float*)&shapePose);
 
             if (actors[i] == m_redBlock)
+            {
                 glColor4f(0.9f, 0, 0, 1.0f);
+                m_redBlockPos = shapePose.getPosition();
+                if (!m_redBlockPosInit) {
+                    m_redBlockPosInit = true;
+                    m_redBlockOriPos = m_redBlockPos;
+                }
+                if((m_redBlockOriPos - m_redBlockPos).magnitude() >=  1.5f)
+//                        emit m_puzzles->puzzlesReachedValue("You have found the hidden box");
+                    m_puzzleSolved = true;
+                    qDebug() << m_redBlockPos.x << ""<< m_redBlockPos.y << ""<<m_redBlockPos.z;
+
+                    m_puzzles->infoToPrint= "You have found the hidden box";
+            }
             else
                 glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 

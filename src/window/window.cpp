@@ -85,7 +85,9 @@ void Window::renderOpenGL()
 
     m_world.draw();
 
-    OpenGLWindow::showSubtitles(m_world.m_puzzles->infoToPrint);
+    QString stupidmessage("You have found it!");
+    if(m_world.m_puzzleSolved)
+        OpenGLWindow::showSubtitles(stupidmessage);
     OpenGLWindow::showPermanentStat(m_world.dynamicstring);
 
     getErrors("rendering END");

@@ -21,6 +21,7 @@
 #define MAX_NUM_ACTOR_SHAPES 125
 #include <PxPhysicsAPI.h>
 using namespace physx;
+#include <QDebug>
 
 class World : public QObject, protected QOpenGLFunctions
 {
@@ -41,6 +42,7 @@ public:
     QString dynamicstring;
     Puzzles *m_puzzles;
 
+    bool m_puzzleSolved;
 
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
@@ -55,6 +57,10 @@ private:
     Obj cubeMesh;
 
     PxRigidDynamic         *m_redBlock;
+    PxVec3                  m_redBlockPos;
+    PxVec3                  m_redBlockOriPos;
+    bool m_redBlockPosInit;
+
 
     PxDefaultAllocator		gAllocator;
     PxDefaultErrorCallback	gErrorCallback;
