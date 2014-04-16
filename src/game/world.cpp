@@ -219,6 +219,9 @@ void World::renderGeometry(const PxGeometryHolder& h)
             glPopMatrix();
         }
         break;
+    default:
+
+        break;
     }
 }
 
