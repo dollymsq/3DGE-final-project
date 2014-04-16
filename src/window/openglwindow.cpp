@@ -162,18 +162,18 @@ void OpenGLWindow::setAnimating(bool animating)
 
 void OpenGLWindow::showSubtitles(QString &info) // eventually fading away
 {
-    if(info!= "")
-    {
-        m_painter->setPen(QPen(Qt::blue));
+//    if(info!= "")
+//    {
+        m_painter->setPen(QPen(Qt::red));
         m_painter->setFont(QFont("Monospace", 11));
-        m_painter->drawText(QRect(0,this->width() - 100,this->width(),100), Qt::AlignLeft, info);
-        if(m_subTimer.elapsed()>3000)
-        {
-            info = "";
-        }
-    }
-    else
-        m_subTimer.restart();
+        m_painter->drawText(QRect(20,200,this->width(),100), Qt::AlignLeft,  info);
+//        if(m_subTimer.elapsed()>2000)
+//        {
+//            info = "";
+//        }
+//    }
+//    else
+//        m_subTimer.restart();
 
 }
 

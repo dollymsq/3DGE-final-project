@@ -7,6 +7,7 @@ Puzzles::Puzzles()
     solvedPuzzlesNumber = 0;
     QObject::connect(this,SIGNAL(puzzlesReachedValue(QString)),
                      this, SLOT(storeSubtitles(QString)));
+    infoToPrint = "";
 }
 
 void Puzzles::storeSubtitles(QString info)
@@ -20,7 +21,7 @@ void Puzzles::OnePuzzleSolved()
 {
 
     solvedPuzzlesNumber++;
-    if(solvedPuzzlesNumber == 5)
+//    if(solvedPuzzlesNumber == 5)
         emit puzzlesReachedValue("You have found the hidden box");
 }
 
