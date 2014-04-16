@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>meshes/level_plain.obj</file>
+        <file>meshes/cube.obj</file>
+        <file>meshes/sphere.obj</file>
+        <file>meshes/pyramid.obj</file>
+    </qresource>
+</RCC>
