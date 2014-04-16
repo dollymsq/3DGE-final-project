@@ -113,9 +113,12 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
     {
 	    for(PxU32 j=0;j<size-i;j++)
 	    {
-		    for(PxU32 k=0;k<size;k++)
+		    for(PxU32 k=0;k<size-i;k++)
 		    {
-			    PxTransform localTm(PxVec3(PxReal(j*2) - PxReal(size-i), PxReal(i*2+1), PxReal(i*2) - PxReal(size-k)) * halfExtent);
+			    PxTransform localTm(PxVec3(PxReal(j*2) - PxReal(size-i),
+                                           PxReal(i*2+1),
+                                          -PxReal(k) + PxReal(size-k))
+                                           * halfExtent);
 			    PxRigidDynamic* body = gPhysics->createRigidDynamic(t.transform(localTm));
 			    body->attachShape(*shape);
 			    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
@@ -171,7 +174,10 @@ void World::initPhysics(bool interactive)
     gScene->addActor(*groundPlane);
 
 //    for(PxU32 i=0;i<3;i++)
-        createStack(PxTransform(PxVec3(0,0,stackZ-=10.0f)), 5, 2.0f);
+     createStack(PxTransform(PxVec3(0,  0,  -40.0f)), 5, 2.0f);
+     createStack(PxTransform(PxVec3(0,  0,  40.0f)), 5, 2.0f);
+     createStack(PxTransform(PxVec3(-40, 0, -40.0f)), 5, 2.0f);
+     createStack(PxTransform(PxVec3(-40, 0, 40.0f)), 5, 2.0f);
 
     if(!interactive)
         createDynamic(PxTransform(PxVec3(0,40,100)), PxSphereGeometry(10), PxVec3(0,-50,-100));
@@ -282,5 +288,5 @@ void World::renderGeometry(const PxGeometryHolder& h)
 
 void World::tick(float seconds)
 {
-//    stepPhysics(true);
+    stepPhysics(true);
 }
