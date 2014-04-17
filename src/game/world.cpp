@@ -232,7 +232,7 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                 if((m_redBlockOriPos - m_redBlockPos).magnitude() >=  1.5f)
 //                        emit m_puzzles->puzzlesReachedValue("You have found the hidden box");
                     m_puzzleSolved = true;
-                    qDebug() << m_redBlockPos.x << ""<< m_redBlockPos.y << ""<<m_redBlockPos.z;
+//                    qDebug() << m_redBlockPos.x << ""<< m_redBlockPos.y << ""<<m_redBlockPos.z;
 
                     m_puzzles->infoToPrint= "You have found the hidden box";
             }

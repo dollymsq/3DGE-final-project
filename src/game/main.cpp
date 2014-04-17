@@ -9,16 +9,17 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     Window window;
+
+#ifdef Q_OS_MAC
+    QSize screen = window.screen()->size();
+    window.setGeometry(0,0,screen.width(),screen.height());
+#endif
+
 //    window.resize(640, 480);
     window.setTitle("cs195u Final");
     window.setVisibility(QWindow::FullScreen);
-
-//#ifdef Q_OS_MAC
-//    QSize screen = window.screen()->size();
-//    window.setGeometry(0,0,screen.width(),screen.height());
-//#endif
-
     window.showFullScreen();
+
     // will tick according to sreen refresh screen rate
     window.setAnimating(true);
 

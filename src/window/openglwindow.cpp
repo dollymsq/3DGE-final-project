@@ -18,7 +18,7 @@ OpenGLWindow::OpenGLWindow(QWindow *parent)
 //    format.setProfile(QSurfaceFormat::CoreProfile);
 //    format.setMajorVersion(4);
 //    format.setMinorVersion(3);
-    format.setDepthBufferSize(1);
+    format.setDepthBufferSize(24);
     setFormat(format);
 
     // Hide the cursor since this is a fullscreen app
