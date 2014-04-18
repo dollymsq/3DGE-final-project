@@ -46,11 +46,9 @@ void World::init()
     glLightfv(GL_LIGHT0, GL_POSITION, position);
     glEnable(GL_LIGHT0);
 
-    numberOfDynamic = 20;
-    QObject::connect(m_puzzles, SIGNAL(collisionReachedValue(QString)),
-                     m_puzzles, SLOT(storeSubtitles(QString)));
+    numberOfDynamic = 40;
 
-    dynamicstring = "Number of Balls Left: " + QString::number(20);
+    dynamicstring = "Number of Balls Left: " + QString::number(numberOfDynamic);
 
 }
 
@@ -120,8 +118,10 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 		    {
 			    PxTransform localTm(PxVec3(PxReal(j*2) - PxReal(size-i),
                                            PxReal(i*2+1),
-                                          -PxReal(k) + PxReal(size-k))
+                                          /*-PxReal(k) + PxReal(size-k)*/
+                                           PxReal(k*2) - PxReal(size-i))
                                            * halfExtent);
+//                qDebug() <<PxReal(j*2) - PxReal(size-i)<<","<<PxReal(i*2+1)<<","<<-PxReal(k) + PxReal(size-k);
 			    PxRigidDynamic* body = gPhysics->createRigidDynamic(t.transform(localTm));
 
                 if (i == 2 && j == 1 && k == 1) {
@@ -229,12 +229,12 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                     m_redBlockPosInit = true;
                     m_redBlockOriPos = m_redBlockPos;
                 }
-                if((m_redBlockOriPos - m_redBlockPos).magnitude() >=  1.5f)
-//                        emit m_puzzles->puzzlesReachedValue("You have found the hidden box");
+                if((m_redBlockOriPos - m_redBlockPos).magnitude() >=  1.5f && !m_puzzleSolved)
+                {
+                                            emit m_puzzles->puzzlesSolved("You have found the hidden box");
                     m_puzzleSolved = true;
-//                    qDebug() << m_redBlockPos.x << ""<< m_redBlockPos.y << ""<<m_redBlockPos.z;
-
-                    m_puzzles->infoToPrint= "You have found the hidden box";
+//                    m_puzzles->infoToPrint= "You have found the hidden box";
+                }
             }
             else
                 glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
