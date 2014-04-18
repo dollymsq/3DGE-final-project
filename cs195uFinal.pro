@@ -78,7 +78,7 @@ RES = res
 
 # remove this eventually
 # GLU library
-LIBS += -lGLU
+#LIBS += -lGLU
 
 # GLM Library
 GLM = $${LIB}/glm-0.9.5.1
