@@ -6,8 +6,8 @@ Camera::Camera()
     , m_velocity(0.0f)
     , m_fov(1.047f)
     , m_speed(25.0f)
-    , m_pitchSpeed(0.7f)
-    , m_yawSpeed(0.7f)
+    , m_pitchSpeed(0.6f)
+    , m_yawSpeed(0.6f)
 {
     pressingJump =
     pressingForward =
@@ -49,7 +49,7 @@ void Camera::mouseRotation(glm::vec2 delta)
 
 void Camera::update(float seconds)
 {
-    glm::vec2 smoothRotation = glm::mix(m_lastRotation, m_rotation, glm::min(25.0f * seconds, 1.0f));
+    glm::vec2 smoothRotation = glm::mix(m_lastRotation, m_rotation, glm::min(20.0f * seconds, 1.0f));
     m_lastRotation = smoothRotation;
 
     float rotX = glm::radians(smoothRotation.x);
