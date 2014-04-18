@@ -2,7 +2,6 @@
 #define WINDOW_H
 
 #include "window/openglwindow.h"
-#include "scene/camera.h"
 #include "game/world.h"
 
 #include <QtGui/QOpenGLShaderProgram>

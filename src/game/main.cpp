@@ -15,10 +15,12 @@ int main(int argc, char *argv[])
     window.setGeometry(0,0,screen.width(),screen.height());
 #endif
 
-//    window.resize(640, 480);
+    window.resize(640, 480);
     window.setTitle("cs195u Final");
     window.setVisibility(QWindow::FullScreen);
     window.showFullScreen();
+
+//    window.show();
 
     // will tick according to sreen refresh screen rate
     window.setAnimating(true);

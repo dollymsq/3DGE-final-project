@@ -118,7 +118,6 @@ void OpenGLWindow::renderNow()
 
         m_tickTimer.start();
         m_fpsTimer.start();
-        m_subTimer.start();
     }
 
     m_context->makeCurrent(this);
@@ -166,32 +165,34 @@ void OpenGLWindow::setAnimating(bool animating)
         renderLater();
 }
 
-void OpenGLWindow::showSubtitles(QString &info) // eventually fading away
-{
-//    if(info!= "")
+//void OpenGLWindow::showSubtitles(QString &info) // eventually fading away
+//{
+//    if(info!= " ")
 //    {
-        m_painter->setPen(QPen(Qt::red));
-        m_painter->setFont(QFont("Monospace", 11));
-        m_painter->drawText(QRect(20,200,this->width(),100), Qt::AlignLeft,  info);
-//        if(m_subTimer.elapsed()>2000)
+//        m_painter->setPen(QPen(Qt::red));
+//        m_painter->setFont(QFont("Monospace", 11));
+//        m_painter->drawText(QRect(20,200,this->width(),100), Qt::AlignLeft,  info);
+//        if(m_subTimer.elapsed()>3000)
 //        {
-//            info = "";
+//            info = " ";
 //        }
 //    }
 //    else
+//    {
 //        m_subTimer.restart();
+//    }
 
-}
+//}
 
-void OpenGLWindow::showPermanentStat(QString &info)
-{
-    m_painter->setPen(QPen(Qt::gray));
-    m_painter->setFont(QFont("Monospace", 11));
-    m_painter->drawText(QRect(20,80,this->width(),100), Qt::AlignLeft, info);
+//void OpenGLWindow::showPermanentStat(QString &info)
+//{
+//    m_painter->setPen(QPen(Qt::gray));
+//    m_painter->setFont(QFont("Monospace", 11));
+//    m_painter->drawText(QRect(20,80,this->width(),100), Qt::AlignLeft, info);
 
-    m_painter->setPen(QPen(Qt::white));
-    m_painter->drawText(QRect(20,120,this->width(),100), Qt::AlignLeft, "Find the red box!");
-    m_painter->drawText(QRect(20,140,this->width(),100), Qt::AlignLeft, "Press space to shoot!");
-}
+//    m_painter->setPen(QPen(Qt::white));
+//    m_painter->drawText(QRect(20,120,this->width(),100), Qt::AlignLeft, "Find the red box!");
+//    m_painter->drawText(QRect(20,140,this->width(),100), Qt::AlignLeft, "Press space to shoot!");
+//}
 
 

@@ -14,7 +14,7 @@ Window::~Window()
 void Window::onTick(const float seconds)
 {
     OpenGLWindow::onTick(seconds);
-    m_camera.update(seconds);
+//    m_camera.update(seconds);
     m_world.tick(seconds);
 }
 
@@ -28,11 +28,8 @@ void Window::initialize()
     // Enable back face culling
     glEnable(GL_CULL_FACE);
 
-    // camera
-    m_camera.setAspectRatio(width()/height());
-
     // world
-    m_world.init();
+    m_world.init(width()/height());
 }
 
 void Window::renderOpenGL()
@@ -45,17 +42,12 @@ void Window::renderOpenGL()
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glLoadMatrixf(glm::value_ptr(m_camera.pMatrix));
+    glLoadMatrixf(glm::value_ptr(m_world.getPMatrix()));
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glLoadMatrixf(glm::value_ptr(m_camera.vMatrix));
+    glLoadMatrixf(glm::value_ptr(m_world.getVMatrix()));
 
-    m_world.draw();
-
-    QString stupidmessage("You have found it!");
-    if(m_world.m_puzzleSolved)
-        OpenGLWindow::showSubtitles(stupidmessage);
-//    OpenGLWindow::showPermanentStat(m_world.dynamicstring);
+    m_world.draw(m_painter);
 
 }
 
@@ -87,7 +79,8 @@ void Window::mouseMoveEvent(QMouseEvent *event)
     if (!deltaX && !deltaY) return;
     QCursor::setPos(mapToGlobal(viewCenter));
 
-    m_camera.mouseRotation(glm::vec2(deltaX, deltaY));
+    m_world.rotateMouse(glm::vec2(deltaX, deltaY));
+//    m_camera.mouseRotation(glm::vec2(deltaX, deltaY));
 }
 
 void Window::mouseReleaseEvent(QMouseEvent *event)
@@ -101,58 +94,37 @@ void Window::keyPressEvent(QKeyEvent *event)
 
     switch(event->key()) {
     case Qt::Key_W:
-        m_camera.pressingForward = true;
+        m_world.enableForward(true);
         break;
     case Qt::Key_S:
-        m_camera.pressingBackward = true;
+        m_world.enableBackward(true);
         break;
     case Qt::Key_A:
-        m_camera.pressingLeft = true;
+        m_world.enableLeft(true);
         break;
     case Qt::Key_D:
-        m_camera.pressingRight = true;
+        m_world.enableRight(true);
         break;
     }
 
-
-    if (event->key() == Qt::Key_Space) {
-        PxTransform transform;
-        PxVec3 dir(m_camera.m_lookAt.x, m_camera.m_lookAt.y,m_camera.m_lookAt.z);
-        PxVec3 eye(m_camera.m_position.x, m_camera.m_position.y,m_camera.m_position.z);
-
-        dir = dir - eye;
-        dir.normalize();
-
-        PxVec3 viewY = dir.cross(PxVec3(0,1,0));
-
-        if(viewY.normalize()<1e-6f) {
-            transform = PxTransform(eye);
-        } else {
-            PxMat33 m(dir.cross(viewY), viewY, -dir);
-            transform = PxTransform(eye, PxQuat(m));
-        }
-
-
-        m_world.createDynamic(transform, PxSphereGeometry(3.0f), dir*100);
-    }
+    if (event->key() == Qt::Key_Space)
+        m_world.shootDynamic();
 }
 
 void Window::keyReleaseEvent(QKeyEvent *event)
 {
     switch(event->key()) {
     case Qt::Key_W:
-        m_camera.pressingForward = false;
+        m_world.enableForward(false);
         break;
     case Qt::Key_S:
-        m_camera.pressingBackward = false;
+        m_world.enableBackward(false);
         break;
     case Qt::Key_A:
-        m_camera.pressingLeft = false;
+        m_world.enableLeft(false);
         break;
     case Qt::Key_D:
-        m_camera.pressingRight = false;
+        m_world.enableRight(false);
         break;
     }
-
-    if (event->key() == Qt::Key_Space) m_camera.pressingJump = false;
 }

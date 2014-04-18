@@ -24,8 +24,11 @@ World::~World()
     delete m_puzzles;
 }
 
-void World::init()
+void World::init(float wid_hei)
 {
+    // camera
+    m_camera.setAspectRatio(wid_hei);
+
     initializeOpenGLFunctions();
     initPhysics(true);
 
@@ -46,15 +49,16 @@ void World::init()
     glLightfv(GL_LIGHT0, GL_POSITION, position);
     glEnable(GL_LIGHT0);
 
-    numberOfDynamic = 20;
-    QObject::connect(m_puzzles, SIGNAL(collisionReachedValue(QString)),
-                     m_puzzles, SLOT(storeSubtitles(QString)));
 
-    dynamicstring = "Number of Balls Left: " + QString::number(20);
+
+    m_subTimer.start();
+
+    numberOfDynamic = 40;
+    dynamicsNumber = "Number of Balls Left: " + QString::number(numberOfDynamic);
 
 }
 
-void World::draw()
+void World::draw(QPainter *m_painter)
 {
     glEnable(GL_DEPTH_TEST);
 
@@ -85,13 +89,17 @@ void World::draw()
 //    glEnd();
 
     glDisable(GL_DEPTH_TEST);
+
+
+    showSubtitles(m_puzzles->infoToPrint, m_painter);
+    showPermanentStat(dynamicsNumber, m_painter);
 }
 
 PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity)
 {
     if(numberOfDynamic <= 0)
     {
-        dynamicstring = "Number of Dynamics: " + QString::number(0);
+        dynamicsNumber = "Number of Dynamics: " + QString::number(0);
     }
 
     else if(numberOfDynamic > 0)
@@ -102,7 +110,7 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
         dynamic->setAngularDamping(0.5f);
         dynamic->setLinearVelocity(velocity);
         gScene->addActor(*dynamic);
-        dynamicstring = "Number of Dynamics: " + QString::number(numberOfDynamic);
+        dynamicsNumber = "Number of Dynamics: " + QString::number(numberOfDynamic);
         return dynamic;
     }
 }
@@ -120,8 +128,10 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 		    {
 			    PxTransform localTm(PxVec3(PxReal(j*2) - PxReal(size-i),
                                            PxReal(i*2+1),
-                                          -PxReal(k) + PxReal(size-k))
+                                          /*-PxReal(k) + PxReal(size-k)*/
+                                           PxReal(k*2) - PxReal(size-i))
                                            * halfExtent);
+//                qDebug() <<PxReal(j*2) - PxReal(size-i)<<","<<PxReal(i*2+1)<<","<<-PxReal(k) + PxReal(size-k);
 			    PxRigidDynamic* body = gPhysics->createRigidDynamic(t.transform(localTm));
 
                 if (i == 2 && j == 1 && k == 1) {
@@ -229,12 +239,12 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                     m_redBlockPosInit = true;
                     m_redBlockOriPos = m_redBlockPos;
                 }
-                if((m_redBlockOriPos - m_redBlockPos).magnitude() >=  1.5f)
-//                        emit m_puzzles->puzzlesReachedValue("You have found the hidden box");
+                if((m_redBlockOriPos - m_redBlockPos).magnitude() >=  1.5f && !m_puzzleSolved)
+                {
+                    emit m_puzzles->puzzlesSolved("You have found the hidden box");
                     m_puzzleSolved = true;
-//                    qDebug() << m_redBlockPos.x << ""<< m_redBlockPos.y << ""<<m_redBlockPos.z;
-
-                    m_puzzles->infoToPrint= "You have found the hidden box";
+                    //m_puzzles->infoToPrint= "You have found the hidden box";
+                }
             }
             else
                 glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
@@ -303,5 +313,92 @@ void World::renderGeometry(const PxGeometryHolder& h)
 
 void World::tick(float seconds)
 {
+    m_camera.update(seconds);
     stepPhysics(true);
+}
+
+void World::shootDynamic()
+{
+    PxTransform transform;
+    PxVec3 dir(m_camera.m_lookAt.x, m_camera.m_lookAt.y,m_camera.m_lookAt.z);
+    PxVec3 eye(m_camera.m_position.x, m_camera.m_position.y,m_camera.m_position.z);
+
+    dir = dir - eye;
+    dir.normalize();
+
+    PxVec3 viewY = dir.cross(PxVec3(0,1,0));
+
+    if(viewY.normalize()<1e-6f) {
+        transform = PxTransform(eye);
+    } else {
+        PxMat33 m(dir.cross(viewY), viewY, -dir);
+        transform = PxTransform(eye, PxQuat(m));
+    }
+
+    createDynamic(transform, PxSphereGeometry(3.0f), dir*100);
+}
+
+void World::showSubtitles(QString &info, QPainter* m_painter) // eventually fading away
+{
+    if(info!= " ")
+    {
+        m_painter->setPen(QPen(Qt::red));
+        m_painter->setFont(QFont("Monospace", 11));
+        m_painter->drawText(QRect(20,200,600,100), Qt::AlignLeft,  info);
+        if(m_subTimer.elapsed()>3000)
+        {
+            info = " ";
+        }
+    }
+    else
+    {
+        m_subTimer.restart();
+    }
+
+}
+
+void World::showPermanentStat(QString &info, QPainter* m_painter)
+{
+    m_painter->setPen(QPen(Qt::gray));
+    m_painter->setFont(QFont("Monospace", 11));
+    m_painter->drawText(QRect(20,80,600,100), Qt::AlignLeft, info);
+
+    m_painter->setPen(QPen(Qt::white));
+    m_painter->drawText(QRect(20,120,600,100), Qt::AlignLeft, "Find the red box!");
+    m_painter->drawText(QRect(20,140,600,100), Qt::AlignLeft, "Press space to shoot!");
+}
+
+glm::mat4 World::getPMatrix()
+{
+    return m_camera.pMatrix;
+}
+
+glm::mat4 World::getVMatrix()
+{
+    return m_camera.vMatrix;
+}
+
+void World::rotateMouse(glm::vec2 delta)
+{
+    m_camera.mouseRotation(delta);
+}
+
+void World::enableForward(bool flag)
+{
+    m_camera.pressingForward = flag;
+}
+
+void World::enableBackward(bool flag)
+{
+    m_camera.pressingBackward = flag;
+}
+
+void World::enableLeft(bool flag)
+{
+    m_camera.pressingLeft = flag;
+}
+
+void World::enableRight(bool flag)
+{
+    m_camera.pressingRight = flag;
 }
