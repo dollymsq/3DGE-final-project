@@ -12,16 +12,20 @@
 #include <QList>
 
 #include "assets/obj.h"
+#include "scene/camera.h"
 
 #include <iostream>
 #include "puzzles.h"
+#include <QtGui/QPainter>
+#include <QElapsedTimer>
+
 
 // connection for physx debugger
 #define PVD_HOST "127.0.0.1"
 #define MAX_NUM_ACTOR_SHAPES 125
 #include <PxPhysicsAPI.h>
 using namespace physx;
-#include <QDebug>
+
 
 class World : public QObject, protected QOpenGLFunctions
 {
@@ -31,18 +35,27 @@ public:
     World();
     virtual ~World();
 
-    void init();
-    void draw();
+    void init(float wid_hei);
+    void draw(QPainter *m_painter);
     void tick(float seconds);
 
 
     PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0));
 
     int numberOfDynamic;
-    QString dynamicstring;
+    QString dynamicsNumber;
     Puzzles *m_puzzles;
-
     bool m_puzzleSolved;
+
+    void shootDynamic();
+    void enableForward(bool flag);
+    void enableBackward(bool flag);
+    void enableLeft(bool flag);
+    void enableRight(bool flag);
+
+    glm::mat4 getPMatrix();
+    glm::mat4 getVMatrix();
+    void rotateMouse(glm::vec2 delta);
 
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
@@ -52,6 +65,8 @@ private:
 
     void renderActors(PxRigidActor** actors, const PxU32 numActors, bool shadows);
     void renderGeometry(const PxGeometryHolder& h);
+    void showSubtitles(QString &info, QPainter* m_painter);
+    void showPermanentStat(QString &info, QPainter* m_painter);
 
     Obj sphereMesh;
     Obj cubeMesh;
@@ -77,6 +92,9 @@ private:
 
 
     PxReal stackZ;
+
+    Camera m_camera;
+    QElapsedTimer m_subTimer;
 
 };
 
