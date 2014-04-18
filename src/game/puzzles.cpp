@@ -5,24 +5,29 @@ Puzzles::Puzzles()
 {
     collisioncount = 0;
     solvedPuzzlesNumber = 0;
-    QObject::connect(this,SIGNAL(puzzlesReachedValue(QString)),
-                     this, SLOT(storeSubtitles(QString)));
-    infoToPrint = "";
-}
-
-void Puzzles::storeSubtitles(QString info)
-{
-    infoToPrint = info;
-    qDebug() << infoToPrint;
+    QObject::connect(this,SIGNAL(puzzlesSolved(QString)),
+                     this, SLOT(OnePuzzleSolved(QString)));
+    infoToPrint = " ";
 }
 
 
-void Puzzles::OnePuzzleSolved()
+void Puzzles::OnePuzzleSolved(QString info)
 {
-
     solvedPuzzlesNumber++;
-//    if(solvedPuzzlesNumber == 5)
-        emit puzzlesReachedValue("You have found the hidden box");
+    if(solvedPuzzlesNumber == 5)
+    {
+        infoToPrint = info + "\nYou have won the game.";
+        qDebug() << infoToPrint;
+    }
+    else
+    {
+        infoToPrint = info;
+        qDebug() << infoToPrint;
+    }
 }
+
+
+
+
 
 

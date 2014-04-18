@@ -85,9 +85,9 @@ void Window::renderOpenGL()
 
     m_world.draw();
 
-    QString stupidmessage("You have found it!");
-    if(m_world.m_puzzleSolved)
-        OpenGLWindow::showSubtitles(stupidmessage);
+//    QString stupidmessage("You have found it!");
+//    if(m_world.m_puzzleSolved)
+    OpenGLWindow::showSubtitles(m_world.m_puzzles->infoToPrint);
     OpenGLWindow::showPermanentStat(m_world.dynamicstring);
 
     getErrors("rendering END");
@@ -165,7 +165,6 @@ void Window::keyPressEvent(QKeyEvent *event)
             PxMat33 m(dir.cross(viewY), viewY, -dir);
             transform = PxTransform(eye, PxQuat(m));
         }
-
 
         m_world.createDynamic(transform, PxSphereGeometry(3.0f), dir*100);
     }
