@@ -73,7 +73,5 @@ void Camera::update(float seconds)
 
     m_lookAt += m_position;
 
-//    qDebug() << QString::fromStdString(glm::to_string(m_position));
-
     vMatrix = glm::lookAt(m_position, m_lookAt, m_up);
 }

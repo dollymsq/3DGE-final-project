@@ -42,6 +42,8 @@ protected:
 
     bool event(QEvent *event);
     void exposeEvent(QExposeEvent *event);
+    QPainter *m_painter;
+
 
 private:
     bool m_update_pending;
@@ -49,11 +51,9 @@ private:
 
     QOpenGLContext *m_context;
     QOpenGLPaintDevice *m_device;
-    QPainter *m_painter;
 
     QElapsedTimer m_tickTimer;
     QElapsedTimer m_fpsTimer;
-    QElapsedTimer m_subTimer;
     int m_frames;
     int m_fps;
 
