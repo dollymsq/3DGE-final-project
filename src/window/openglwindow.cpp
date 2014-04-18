@@ -16,8 +16,8 @@ OpenGLWindow::OpenGLWindow(QWindow *parent)
     format.setSamples(4); // multi-sampling
     format.setRenderableType(QSurfaceFormat::OpenGL); // change to opengles on mobile
 //    format.setProfile(QSurfaceFormat::CoreProfile);
-//    format.setMajorVersion(4);
-//    format.setMinorVersion(3);
+    format.setMajorVersion(3);
+    format.setMinorVersion(2);
     format.setDepthBufferSize(24);
     setFormat(format);
 
@@ -39,7 +39,11 @@ OpenGLWindow::~OpenGLWindow()
 void OpenGLWindow::render()
 {
     m_painter->beginNativePainting();
+    glEnable(GL_MULTISAMPLE);
+
     renderOpenGL();
+
+    glDisable(GL_MULTISAMPLE);
     m_painter->endNativePainting();
 
     m_painter->setPen(Qt::red);
@@ -131,6 +135,8 @@ void OpenGLWindow::renderNow()
         m_device->setSize(size());
 
         m_painter = new QPainter(m_device);
+        m_painter->setRenderHint(QPainter::Antialiasing);
+        m_painter->setRenderHint(QPainter::TextAntialiasing);
     }
 
     if (!m_painter->isActive()) {

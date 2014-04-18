@@ -25,7 +25,7 @@ macx:LIBS += -L$${PHYSX}/Lib/osx64
 unix:!macx:LIBS += -L$${PHYSX}/Lib/linux64
 
 CONFIG(release, debug|release) {
-    DEFINES += QT_NO_DEBUG_OUTPUT QT_NO_WARNING_OUTPUT
+    DEFINES += QT_NO_DEBUG QT_NO_DEBUG_OUTPUT QT_NO_WARNING_OUTPUT
 
     # PHYSX library
     DEFINES += NDEBUG
@@ -48,6 +48,9 @@ CONFIG(release, debug|release) {
     !clang:LIBS += -Wl,--end-group
 
 } else {
+    # Get OpenGL errors for every line (warning: slow)
+    DEFINES += Q_ENABLE_OPENGL_FUNCTIONS_DEBUG
+
     # PHYSX library
     DEFINES += _DEBUG \
         PHYSX_PROFILE_SDK \

@@ -33,43 +33,10 @@ void Window::initialize()
 
     // world
     m_world.init();
-
-
-    getErrors("initialize");
-}
-
-void Window::getErrors(QString location) {
-#ifndef QT_NO_DEBUG_OUTPUT
-
-    GLenum error = glGetError();
-
-    if (error != GL_NO_ERROR)
-        qDebug() << "OpenGL Error: " + location;
-
-    switch(error) {
-    case GL_INVALID_ENUM:
-        qDebug() << "GL_INVALID_ENUM";
-        break;
-    case GL_INVALID_VALUE:
-        qDebug() << "GL_INVALID_VALUE";
-        break;
-    case GL_INVALID_OPERATION:
-        qDebug() << "GL_INVALID_OPERATION";
-        break;
-    case GL_INVALID_FRAMEBUFFER_OPERATION:
-        qDebug() << "GL_INVALID_FRAMEBUFFER_OPERATION";
-        break;
-    case GL_OUT_OF_MEMORY:
-        qDebug() << "GL_OUT_OF_MEMORY";
-        break;
-    }
-
-#endif
 }
 
 void Window::renderOpenGL()
 {
-    getErrors("rendering START");
 
     const qreal retinaScale = devicePixelRatio();
     glViewport(0, 0, width() * retinaScale, height() * retinaScale);
@@ -88,9 +55,8 @@ void Window::renderOpenGL()
     QString stupidmessage("You have found it!");
     if(m_world.m_puzzleSolved)
         OpenGLWindow::showSubtitles(stupidmessage);
-    OpenGLWindow::showPermanentStat(m_world.dynamicstring);
+//    OpenGLWindow::showPermanentStat(m_world.dynamicstring);
 
-    getErrors("rendering END");
 }
 
 void Window::mousePressEvent(QMouseEvent *event)

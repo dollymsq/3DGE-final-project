@@ -37,8 +37,6 @@ private:
     // World
     World m_world;
 
-    inline void getErrors(QString location);
-
     GLuint m_posAttr;
     GLuint m_texAttr;
     GLuint m_matrixUniform;
