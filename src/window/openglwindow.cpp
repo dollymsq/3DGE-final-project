@@ -15,7 +15,7 @@ OpenGLWindow::OpenGLWindow(QWindow *parent)
     QSurfaceFormat format;
     format.setSamples(4); // multi-sampling
     format.setRenderableType(QSurfaceFormat::OpenGL); // change to opengles on mobile
-//    format.setProfile(QSurfaceFormat::CoreProfile);
+    format.setProfile(QSurfaceFormat::CompatibilityProfile);
     format.setMajorVersion(3);
     format.setMinorVersion(2);
     format.setDepthBufferSize(24);
