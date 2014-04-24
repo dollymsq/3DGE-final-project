@@ -1,4 +1,8 @@
 #include "world.h"
+#include "assets/tree.h"
+#include "math/lparser.h"
+
+Tree m_tree;
 
 World::World() :
     sphereMesh("sphere.obj"),
@@ -15,6 +19,8 @@ World::World() :
     m_puzzleSolved(false)
 {
     m_puzzles = new Puzzles();
+    m_tree = Tree();
+    m_tree.generate(LParser::testTree());
 }
 
 World::~World()
@@ -74,6 +80,8 @@ void World::draw(QPainter *m_painter)
         scene->getActors(PxActorTypeSelectionFlag::eRIGID_DYNAMIC | PxActorTypeSelectionFlag::eRIGID_STATIC, (PxActor**)&actors[0], nbActors);
         renderActors(&actors[0], (PxU32)actors.size(), true);
     }
+
+    m_tree.drawLines();
 
     glDisable(GL_LIGHTING);
 
