@@ -1,11 +1,11 @@
 #ifndef OPENGLWINDOW_H
 #define OPENGLWINDOW_H
 
+#include "graphics/opengl.h"
 #include <QtCore/QCoreApplication>
 #include <QtGui/QWindow>
-#include <QtGui/QOpenGLFunctions>
 #include <QtGui/QOpenGLContext>
-
+#include <QOpenGLDebugMessage>
 #include <QtGui/QOpenGLPaintDevice>
 #include <QtGui/QPainter>
 
@@ -14,7 +14,7 @@
 #include <glm/ext.hpp>
 #include <QDebug>
 
-class OpenGLWindow : public QWindow, protected QOpenGLFunctions
+class OpenGLWindow : public QWindow
 {
     Q_OBJECT
 
@@ -31,6 +31,8 @@ public:
     void showSubtitles(QString &info);
     void showPermanentStat(QString &info);
 
+    GLFunctions *m_gl;
+    QOpenGLContext *m_context;
 public slots:
     void renderLater();
     void renderNow();
@@ -49,7 +51,7 @@ private:
     bool m_update_pending;
     bool m_animating;
 
-    QOpenGLContext *m_context;
+    QOpenGLDebugLogger *m_logger;
     QOpenGLPaintDevice *m_device;
 
     QElapsedTimer m_tickTimer;
@@ -57,6 +59,7 @@ private:
     int m_frames;
     int m_fps;
 
+    void handleLogMessage(const QOpenGLDebugMessage &debugMessage);
 };
 
 #endif // OPENGLWINDOW_H

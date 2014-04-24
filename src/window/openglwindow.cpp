@@ -23,12 +23,6 @@ OpenGLWindow::OpenGLWindow(QWindow *parent)
 
     // Hide the cursor since this is a fullscreen app
     setCursor(Qt::BlankCursor);
-
-    // ??? : not needed
-    // View needs all mouse move events, not just mouse drag events
-    //setMouseTracking(true);
-    // View needs keyboard focus
-    //setFocusPolicy(Qt::StrongFocus);
 }
 
 OpenGLWindow::~OpenGLWindow()
@@ -112,18 +106,51 @@ void OpenGLWindow::renderNow()
     if (!m_context) {
         m_context = new QOpenGLContext(this);
         m_context->setFormat(requestedFormat());
-        m_context->create();
 
-        needsInitialize = true;
+        if (m_context->create()) {
+            m_gl = m_context->versionFunctions<GLFunctions>();
+            if (!m_gl) {
+                qCritical("Critical: Unable to initialize OpenGL 4.1 Functions");
+                exit(EXIT_FAILURE);
+            }
 
-        m_tickTimer.start();
-        m_fpsTimer.start();
+#ifdef DEBUG_OPENGL
+            m_logger = new QOpenGLDebugLogger(this);
+#endif
+            needsInitialize = true;
+
+            m_tickTimer.start();
+            m_fpsTimer.start();
+        } else {
+            qWarning("Warning: Unable to create OpenGL context");
+            return;
+        }
     }
 
     m_context->makeCurrent(this);
 
     if (needsInitialize) {
-        initializeOpenGLFunctions();
+        m_gl->initializeOpenGLFunctions();
+        g_glFunctions = m_gl;
+#ifdef DEBUG_OPENGL
+        if (m_context->hasExtension(QByteArrayLiteral("GL_KHR_debug"))) {
+            m_logger->initialize();
+            connect(m_logger,
+                    &QOpenGLDebugLogger::messageLogged,
+                    this,
+                    &OpenGLWindow::handleLogMessage,
+                    Qt::DirectConnection);
+            m_logger->enableMessages();
+            m_logger->startLogging(QOpenGLDebugLogger::SynchronousLogging);
+            const QList<QOpenGLDebugMessage> &preInitErrors = m_logger->loggedMessages();
+            if (preInitErrors.size()) {
+                qWarning() << "Warning: Pre-Initialization OpenGL Errors (Qt's fault)";
+                qWarning() << "--[" << preInitErrors << "]--";
+            }
+        } else {
+            qWarning("OpenGL KHR Debugging not available.");
+        }
+#endif
         initialize();
     }
 
@@ -156,6 +183,13 @@ void OpenGLWindow::renderNow()
         renderLater();
 }
 
+void OpenGLWindow::handleLogMessage(const QOpenGLDebugMessage &debugMessage)
+{
+    qDebug() << debugMessage;
+
+//    if (debugMessage.severity() == QOpenGLDebugMessage::HighSeverity)
+//        exit(EXIT_FAILURE);
+}
 
 void OpenGLWindow::setAnimating(bool animating)
 {
@@ -164,35 +198,4 @@ void OpenGLWindow::setAnimating(bool animating)
     if (animating)
         renderLater();
 }
-
-//void OpenGLWindow::showSubtitles(QString &info) // eventually fading away
-//{
-//    if(info!= " ")
-//    {
-//        m_painter->setPen(QPen(Qt::red));
-//        m_painter->setFont(QFont("Monospace", 11));
-//        m_painter->drawText(QRect(20,200,this->width(),100), Qt::AlignLeft,  info);
-//        if(m_subTimer.elapsed()>3000)
-//        {
-//            info = " ";
-//        }
-//    }
-//    else
-//    {
-//        m_subTimer.restart();
-//    }
-
-//}
-
-//void OpenGLWindow::showPermanentStat(QString &info)
-//{
-//    m_painter->setPen(QPen(Qt::gray));
-//    m_painter->setFont(QFont("Monospace", 11));
-//    m_painter->drawText(QRect(20,80,this->width(),100), Qt::AlignLeft, info);
-
-//    m_painter->setPen(QPen(Qt::white));
-//    m_painter->drawText(QRect(20,120,this->width(),100), Qt::AlignLeft, "Find the red box!");
-//    m_painter->drawText(QRect(20,140,this->width(),100), Qt::AlignLeft, "Press space to shoot!");
-//}
-
 

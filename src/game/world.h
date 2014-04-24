@@ -42,8 +42,8 @@ public:
 
     PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0));
 
-    int numberOfDynamic;
-    QString dynamicsNumber;
+    int m_dyanmicsCount;
+    QString m_dynamicsMessage;
     Puzzles *m_puzzles;
     bool m_puzzleSolved;
 
@@ -77,21 +77,23 @@ private:
     bool m_redBlockPosInit;
 
 
-    PxDefaultAllocator		gAllocator;
-    PxDefaultErrorCallback	gErrorCallback;
+    PxDefaultAllocator		m_allocator;
+    PxDefaultErrorCallback	m_errorCallback;
 
-    PxFoundation*			gFoundation;
-    PxPhysics*				gPhysics;
+    PxFoundation*			m_foundation;
+    PxPhysics*				m_physics;
 
-    PxDefaultCpuDispatcher*	gDispatcher;
-    PxScene*				gScene;
+    PxDefaultCpuDispatcher*	m_dispatcher;
+    PxScene*				m_scene;
 
-    PxMaterial*				gMaterial;
+    PxControllerManager* m_manager;
 
-    PxVisualDebuggerConnection* gConnection;
+    PxMaterial*				m_material;
+
+    PxVisualDebuggerConnection* m_connection;
 
 
-    PxReal stackZ;
+    PxReal m_stackZ;
 
     Camera m_camera;
     QElapsedTimer m_subTimer;

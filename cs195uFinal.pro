@@ -86,6 +86,8 @@ CONFIG(release, debug|release) {
     }
 
 } else {
+    DEFINES += DEBUG_OPENGL
+
     # PHYSX library
     unix:DEFINES += _DEBUG
     DEFINES += \
@@ -160,6 +162,7 @@ SOURCES += \
     src/scene/camera.cpp \
     src/game/world.cpp \
     src/game/puzzles.cpp \
+    src/graphics/opengl.cpp \
     src/assets/tree.cpp \
     src/math/lparser.cpp
 
@@ -175,6 +178,7 @@ HEADERS += \
     src/game/world.h \
     src/game/puzzles.h \
     src/graphics/debug.h \
+    src/graphics/opengl.h \
     src/math/lparser.h \
     src/assets/tree.h \
     src/math/common.h \

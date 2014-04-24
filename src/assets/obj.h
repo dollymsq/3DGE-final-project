@@ -1,6 +1,9 @@
 #ifndef OBJ_H
 #define OBJ_H
 
+
+#include "graphics/opengl.h"
+
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -8,6 +11,8 @@
 #include <glm/ext.hpp>
 
 #include <QVector>
+#include <QFile>
+#include <QTextStream>
 
 struct Vertex;
 
@@ -38,17 +43,28 @@ public:
         Triangle(const Index &a, const Index &b, const Index &c) : a(a), b(b), c(c) {}
     };
 
+
+    struct MeshBuffer {
+        glm::vec3 position;
+        glm::vec3 normal;
+        glm::vec2 texcoord;
+    };
+
+    GLuint m_vao;
+    GLuint m_buffer;
+
     QVector<glm::vec3> vertices;
     QVector<glm::vec2> coords;
     QVector<glm::vec3> normals;
     QVector<Triangle> triangles;
 
-    void draw() const;
+    void draw(GLuint pos, GLuint normal, GLuint tex) const;
     bool read(const QString &path);
     bool write(const QString &path) const;
     QVector<float> transform(const glm::mat4 &transform);
     glm::vec3 transformPoint(const glm::vec4 &point, const glm::mat4 &transform);
 
+    void vbo();
 private:
     Index getIndex(const QString &str) const;
     void drawIndex(const Index &index) const;
