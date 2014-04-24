@@ -3,14 +3,14 @@
 World::World() :
     sphereMesh("sphere.obj"),
     cubeMesh("cube.obj"),
-    gFoundation(NULL),
-    gPhysics(NULL),
-    gDispatcher(NULL),
-    gScene(NULL),
-    gMaterial(NULL),
-    gConnection(NULL),
+    m_foundation(NULL),
+    m_physics(NULL),
+    m_dispatcher(NULL),
+    m_scene(NULL),
+    m_material(NULL),
+    m_connection(NULL),
     m_redBlock(NULL),
-    stackZ(10.0f),
+    m_stackZ(10.0f),
     m_redBlockPosInit(false),
     m_puzzleSolved(false)
 {
@@ -53,8 +53,8 @@ void World::init(float wid_hei)
 
     m_subTimer.start();
 
-    numberOfDynamic = 40;
-    dynamicsNumber = "Number of Balls Left: " + QString::number(numberOfDynamic);
+    m_dyanmicsCount = 40;
+    m_dynamicsMessage = "Number of Balls Left: " + QString::number(m_dyanmicsCount);
 
 }
 
@@ -78,39 +78,39 @@ void World::draw(QPainter *m_painter)
     glDisable(GL_LIGHTING);
 
     // Draw grid
-//    glColor4f(0.5f, 0.5f, 0.5f, 0.25f);
-//    glBegin(GL_LINES);
-//    for (int s = 200, i = -s; i <= s; i += 10) {
-//        glVertex3f(i /2.0f,  -0.0f, -s /2.0f);
-//        glVertex3f(i /2.0f,  -0.0f, +s /2.0f);
-//        glVertex3f(-s /2.0f, -0.0f, i /2.0f);
-//        glVertex3f(+s /2.0f, -0.0f, i /2.0f);
-//    }
-//    glEnd();
+    glColor4f(0.5f, 0.5f, 0.5f, 0.25f);
+    glBegin(GL_LINES);
+    for (int s = 200, i = -s; i <= s; i += 10) {
+        glVertex3f(i /2.0f,  -0.0f, -s /2.0f);
+        glVertex3f(i /2.0f,  -0.0f, +s /2.0f);
+        glVertex3f(-s /2.0f, -0.0f, i /2.0f);
+        glVertex3f(+s /2.0f, -0.0f, i /2.0f);
+    }
+    glEnd();
 
     glDisable(GL_DEPTH_TEST);
 
 
     showSubtitles(m_puzzles->infoToPrint, m_painter);
-    showPermanentStat(dynamicsNumber, m_painter);
+    showPermanentStat(m_dynamicsMessage, m_painter);
 }
 
 PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity)
 {
-    if(numberOfDynamic <= 0)
+    if(m_dyanmicsCount <= 0)
     {
-        dynamicsNumber = "Number of Dynamics: " + QString::number(0);
+        m_dynamicsMessage = "Number of Dynamics: " + QString::number(0);
     }
 
-    else if(numberOfDynamic > 0)
+    else if(m_dyanmicsCount > 0)
     {
-        numberOfDynamic--;
+        m_dyanmicsCount--;
 
-        PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, geometry, *gMaterial, 10.0f);
+        PxRigidDynamic* dynamic = PxCreateDynamic(*m_physics, t, geometry, *m_material, 10.0f);
         dynamic->setAngularDamping(0.5f);
         dynamic->setLinearVelocity(velocity);
-        gScene->addActor(*dynamic);
-        dynamicsNumber = "Number of Dynamics: " + QString::number(numberOfDynamic);
+        m_scene->addActor(*dynamic);
+        m_dynamicsMessage = "Number of Dynamics: " + QString::number(m_dyanmicsCount);
         return dynamic;
     }
 }
@@ -118,7 +118,7 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
 
 void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 {
-    PxShape* shape = gPhysics->createShape(PxBoxGeometry(halfExtent, halfExtent, halfExtent), *gMaterial);
+    PxShape* shape = m_physics->createShape(PxBoxGeometry(halfExtent, halfExtent, halfExtent), *m_material);
 
     for(PxU32 i=0; i<size;i++)
     {
@@ -132,7 +132,7 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
                                            PxReal(k*2) - PxReal(size-i))
                                            * halfExtent);
 //                qDebug() <<PxReal(j*2) - PxReal(size-i)<<","<<PxReal(i*2+1)<<","<<-PxReal(k) + PxReal(size-k);
-			    PxRigidDynamic* body = gPhysics->createRigidDynamic(t.transform(localTm));
+			    PxRigidDynamic* body = m_physics->createRigidDynamic(t.transform(localTm));
 
                 if (i == 2 && j == 1 && k == 1) {
                     if (!m_redBlock)
@@ -147,7 +147,7 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 
 			    body->attachShape(*shape);
 			    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
-			    gScene->addActor(*body);
+			    m_scene->addActor(*body);
 		    }
 	    }
 
@@ -158,34 +158,35 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 
 void World::initPhysics(bool interactive)
 {
-    gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
-    PxProfileZoneManager* profileZoneManager = &PxProfileZoneManager::createProfileZoneManager(gFoundation);
-    gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(),true,profileZoneManager);
-    if(gPhysics->getPvdConnectionManager())
+    m_foundation = PxCreateFoundation(PX_PHYSICS_VERSION, m_allocator, m_errorCallback);
+    PxProfileZoneManager* profileZoneManager = &PxProfileZoneManager::createProfileZoneManager(m_foundation);
+    m_physics = PxCreatePhysics(PX_PHYSICS_VERSION, *m_foundation, PxTolerancesScale(),true,profileZoneManager);
+    if(m_physics->getPvdConnectionManager())
     {
-        gPhysics->getVisualDebugger()->setVisualizeConstraints(true);
-        gPhysics->getVisualDebugger()->setVisualDebuggerFlag(PxVisualDebuggerFlag::eTRANSMIT_CONTACTS, true);
-        gPhysics->getVisualDebugger()->setVisualDebuggerFlag(PxVisualDebuggerFlag::eTRANSMIT_SCENEQUERIES, true);
-        gConnection = PxVisualDebuggerExt::createConnection(gPhysics->getPvdConnectionManager(), PVD_HOST, 5425, 10);
+        m_physics->getVisualDebugger()->setVisualizeConstraints(true);
+        m_physics->getVisualDebugger()->setVisualDebuggerFlag(PxVisualDebuggerFlag::eTRANSMIT_CONTACTS, true);
+        m_physics->getVisualDebugger()->setVisualDebuggerFlag(PxVisualDebuggerFlag::eTRANSMIT_SCENEQUERIES, true);
+        m_connection = PxVisualDebuggerExt::createConnection(m_physics->getPvdConnectionManager(), PVD_HOST, 5425, 10);
     }
 
-    PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
+    PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
     sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
-    gDispatcher = PxDefaultCpuDispatcherCreate(2);
-    sceneDesc.cpuDispatcher	= gDispatcher;
+    m_dispatcher = PxDefaultCpuDispatcherCreate(2);
+    sceneDesc.cpuDispatcher	= m_dispatcher;
     sceneDesc.filterShader	= PxDefaultSimulationFilterShader;
-    gScene = gPhysics->createScene(sceneDesc);
+    m_scene = m_physics->createScene(sceneDesc);
 
-    gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
+    m_material = m_physics->createMaterial(0.5f, 0.5f, 0.6f);
 
-    PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0,1,0,0), *gMaterial);
-    gScene->addActor(*groundPlane);
+    PxRigidStatic* groundPlane = PxCreatePlane(*m_physics, PxPlane(0,1,0,0), *m_material);
+    m_scene->addActor(*groundPlane);
 
-//    for(PxU32 i=0;i<3;i++)
-     createStack(PxTransform(PxVec3(0,  0,  -40.0f)), 5, 2.0f);
-     createStack(PxTransform(PxVec3(0,  0,  40.0f)), 5, 2.0f);
-     createStack(PxTransform(PxVec3(-40, 0, -40.0f)), 5, 2.0f);
-     createStack(PxTransform(PxVec3(-40, 0, 40.0f)), 5, 2.0f);
+    createStack(PxTransform(PxVec3(0,  0,  -40.0f)), 5, 2.0f);
+    createStack(PxTransform(PxVec3(0,  0,  40.0f)), 5, 2.0f);
+    createStack(PxTransform(PxVec3(-40, 0, -40.0f)), 5, 2.0f);
+    createStack(PxTransform(PxVec3(-40, 0, 40.0f)), 5, 2.0f);
+
+
 
     if(!interactive)
         createDynamic(PxTransform(PxVec3(0,40,100)), PxSphereGeometry(10), PxVec3(0,-50,-100));
@@ -194,21 +195,21 @@ void World::initPhysics(bool interactive)
 void World::stepPhysics(bool interactive)
 {
     PX_UNUSED(interactive)
-    gScene->simulate(1.0f/20.0f);
-    gScene->fetchResults(true);
+    m_scene->simulate(1.0f/20.0f);
+    m_scene->fetchResults(true);
 }
 
 void World::cleanupPhysics(bool interactive)
 {
     PX_UNUSED(interactive)
-    gScene->release();
-    gDispatcher->release();
-    PxProfileZoneManager* profileZoneManager = gPhysics->getProfileZoneManager();
-    if(gConnection != NULL)
-        gConnection->release();
-    gPhysics->release();
+    m_scene->release();
+    m_dispatcher->release();
+    PxProfileZoneManager* profileZoneManager = m_physics->getProfileZoneManager();
+    if(m_connection != NULL)
+        m_connection->release();
+    m_physics->release();
     profileZoneManager->release();
-    gFoundation->release();
+    m_foundation->release();
 }
 
 void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shadows)
@@ -284,7 +285,7 @@ void World::renderGeometry(const PxGeometryHolder& h)
             glScalef(h.box().halfExtents.x, h.box().halfExtents.y, h.box().halfExtents.z);
             glPushMatrix();
                 glScalef(2,2,2);
-                cubeMesh.draw();
+                cubeMesh.draw(0,0,0);
             glPopMatrix();
         }
         break;
@@ -293,7 +294,7 @@ void World::renderGeometry(const PxGeometryHolder& h)
             float diam = h.sphere().radius * 2;
             glPushMatrix();
                 glScalef(diam, diam, diam);
-                sphereMesh.draw();
+                sphereMesh.draw(0,0,0);
             glPopMatrix();
         }
         break;

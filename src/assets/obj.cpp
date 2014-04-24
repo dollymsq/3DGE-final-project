@@ -1,7 +1,5 @@
 #include "obj.h"
-#include <qgl.h>
-#include <QFile>
-#include <QTextStream>
+
 
 Obj::Obj(const QString &path)
 {
@@ -10,8 +8,23 @@ Obj::Obj(const QString &path)
     }
 }
 
-void Obj::draw() const
+void Obj::draw(GLuint pos, GLuint normal, GLuint tex) const
 {
+//    quintptr offset = 0;
+
+//    gl->glEnableVertexAttribArray(pos);
+//    gl->glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, sizeof(MeshBuffer), (const void *) offset);
+
+//    offset += sizeof(glm::vec3);
+
+//    gl->glEnableVertexAttribArray(normal);
+//    gl->glVertexAttribPointer(normal, 3, GL_FLOAT, GL_FALSE, sizeof(MeshBuffer), (const void *) offset);
+
+//    offset += sizeof(glm::vec3);
+
+//    gl->glVertexAttribPointer(tex, 3, GL_FLOAT, GL_FALSE, sizeof(MeshBuffer), (void *)offsetof(MeshBuffer, texcoord));
+//    gl->glEnableVertexAttribArray(tex);
+
     glBegin(GL_TRIANGLES);
     foreach (const Triangle &tri, triangles) {
         drawIndex(tri.a);
@@ -69,6 +82,41 @@ static QString str(const Obj::Index &i)
         if (i.coord >= 0) return QString("%1/%2").arg(i.vertex + 1).arg(i.coord + 1);
         return QString("%1").arg(i.vertex + 1);
     }
+}
+
+void Obj::vbo()
+{
+
+    // TODO: move to a obj / buffer class
+    GLuint meshSize = triangles.size() * 3;
+    QVector<MeshBuffer> data;
+    data.reserve(meshSize);
+
+    for(Obj::Triangle tri : triangles) {
+        MeshBuffer a;
+        a.position = vertices[tri.a.vertex];
+        a.normal = normals[tri.a.normal];
+        MeshBuffer b;
+        b.position = vertices[tri.b.vertex];
+        b.normal = normals[tri.b.normal];
+        MeshBuffer c;
+        c.position = vertices[tri.c.vertex];
+        c.normal = normals[tri.c.normal];
+
+        data.append(a);
+        data.append(b);
+        data.append(c);
+    }
+
+    gl->glGenVertexArrays(1, &m_vao);
+    gl->glBindVertexArray(m_vao);
+
+    gl->glGenBuffers(1, &m_buffer);
+
+    gl->glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
+
+    gl->glBufferData(GL_ARRAY_BUFFER, sizeof(MeshBuffer) * data.size(), data.data(), GL_STATIC_DRAW);
+
 }
 
 bool Obj::write(const QString &path) const

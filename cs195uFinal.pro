@@ -86,6 +86,8 @@ CONFIG(release, debug|release) {
     }
 
 } else {
+    DEFINES += DEBUG_OPENGL
+
     # PHYSX library
     unix:DEFINES += _DEBUG
     DEFINES += \
@@ -159,7 +161,8 @@ SOURCES += \
     src/window/window.cpp \
     src/scene/camera.cpp \
     src/game/world.cpp \
-    src/game/puzzles.cpp
+    src/game/puzzles.cpp \
+    src/graphics/opengl.cpp
 
 HEADERS += \
     src/game/platworld.h \
@@ -172,7 +175,8 @@ HEADERS += \
     src/scene/camera.h \
     src/game/world.h \
     src/game/puzzles.h \
-    src/graphics/debug.h
+    src/graphics/debug.h \
+    src/graphics/opengl.h
 
 RESOURCES += \
     $${RES}/resources.qrc
