@@ -8,22 +8,22 @@ Obj::Obj(const QString &path)
     }
 }
 
-void Obj::draw(GLuint pos, GLuint normal, GLuint tex) const
+void Obj::draw() const
 {
 //    quintptr offset = 0;
 
-//    gl->glEnableVertexAttribArray(pos);
-//    gl->glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, sizeof(MeshBuffer), (const void *) offset);
+//    gl->glEnableVertexAttribArray(VAO_POSITION);
+//    gl->glVertexAttribPointer(VAO_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(MeshBuffer), (const void *) offset);
 
 //    offset += sizeof(glm::vec3);
 
-//    gl->glEnableVertexAttribArray(normal);
-//    gl->glVertexAttribPointer(normal, 3, GL_FLOAT, GL_FALSE, sizeof(MeshBuffer), (const void *) offset);
+//    gl->glEnableVertexAttribArray(VAO_NORMAL);
+//    gl->glVertexAttribPointer(VAO_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(MeshBuffer), (const void *) offset);
 
 //    offset += sizeof(glm::vec3);
 
-//    gl->glVertexAttribPointer(tex, 3, GL_FLOAT, GL_FALSE, sizeof(MeshBuffer), (void *)offsetof(MeshBuffer, texcoord));
-//    gl->glEnableVertexAttribArray(tex);
+//    gl->glVertexAttribPointer(VAO_TEX_COORD, 3, GL_FLOAT, GL_FALSE, sizeof(MeshBuffer), (const void *) offset);
+//    gl->glEnableVertexAttribArray(VAO_TEX_COORD);
 
     glBegin(GL_TRIANGLES);
     foreach (const Triangle &tri, triangles) {
@@ -127,8 +127,6 @@ static QString str(const Obj::Index &i)
 
 void Obj::vbo()
 {
-
-    // TODO: move to a obj / buffer class
     GLuint meshSize = triangles.size() * 3;
     QVector<MeshBuffer> data;
     data.reserve(meshSize);
@@ -137,12 +135,15 @@ void Obj::vbo()
         MeshBuffer a;
         a.position = vertices[tri.a.vertex];
         a.normal = normals[tri.a.normal];
+        a.texcoord = coords[tri.a.coord];
         MeshBuffer b;
         b.position = vertices[tri.b.vertex];
         b.normal = normals[tri.b.normal];
+        b.texcoord = coords[tri.b.coord];
         MeshBuffer c;
         c.position = vertices[tri.c.vertex];
         c.normal = normals[tri.c.normal];
+        c.texcoord = coords[tri.c.coord];
 
         data.append(a);
         data.append(b);

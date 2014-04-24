@@ -35,7 +35,7 @@ public:
     World();
     virtual ~World();
 
-    void init(float wid_hei);
+    void init(float aspectRatio);
     void draw(QPainter *m_painter);
     void tick(float seconds);
 
