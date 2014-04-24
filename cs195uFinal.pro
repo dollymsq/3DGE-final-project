@@ -162,7 +162,9 @@ SOURCES += \
     src/scene/camera.cpp \
     src/game/world.cpp \
     src/game/puzzles.cpp \
-    src/graphics/opengl.cpp
+    src/graphics/opengl.cpp \
+    src/assets/tree.cpp \
+    src/math/lparser.cpp
 
 HEADERS += \
     src/game/platworld.h \
@@ -176,7 +178,12 @@ HEADERS += \
     src/game/world.h \
     src/game/puzzles.h \
     src/graphics/debug.h \
-    src/graphics/opengl.h
+    src/graphics/opengl.h \
+    src/math/lparser.h \
+    src/assets/tree.h \
+    src/math/common.h \
+    src/math/levent.h \
+    src/math/lcommand.h
 
 RESOURCES += \
     $${RES}/resources.qrc

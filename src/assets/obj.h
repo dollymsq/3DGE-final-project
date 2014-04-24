@@ -7,6 +7,8 @@
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/ext.hpp>
 
 #include <QVector>
 #include <QFile>
@@ -59,6 +61,8 @@ public:
     void draw(GLuint pos, GLuint normal, GLuint tex) const;
     bool read(const QString &path);
     bool write(const QString &path) const;
+    QVector<float> transform(const glm::mat4 &transform);
+    glm::vec3 transformPoint(const glm::vec4 &point, const glm::mat4 &transform);
 
     void vbo();
 private:

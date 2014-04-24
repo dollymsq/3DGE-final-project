@@ -4,6 +4,8 @@
 
 int main(int argc, char *argv[])
 {
+    srand(time(NULL));
+
     qWarning("RUNNING ON DEBUG MODE!");
 
     QGuiApplication app(argc, argv);

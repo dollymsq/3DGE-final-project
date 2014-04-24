@@ -73,6 +73,47 @@ bool Obj::read(const QString &path)
 static QString str(const glm::vec2 &v) { return QString("%1 %2").arg(v.x).arg(v.y); }
 static QString str(const glm::vec3 &v) { return QString("%1 %2 %3").arg(v.x).arg(v.y).arg(v.z); }
 
+QVector<float> Obj::transform(const glm::mat4 &transform) {
+    QVector<float> toReturn;
+    glm::mat4 itrans = glm::inverseTranspose(transform);
+    for(int i = 0; i < triangles.size(); i++)  {
+        Triangle tri = triangles.at(i);
+
+        Index a = tri.a;
+        Index b = tri.b;
+        Index c = tri.c;
+
+        QVector<Index> v;
+        v.append(a);
+        v.append(b);
+        v.append(c);
+
+        for(int j = 0; j < 3; j++)  {
+            Index curr = v.at(j);
+            glm::vec3 currPoint = vertices[curr.vertex];
+            glm::vec3 currNormal = normals[curr.normal];
+            glm::vec2 currTex = coords[curr.coord];
+
+            glm::vec4 currPointGLM = glm::vec4(currPoint.x,currPoint.y,currPoint.z,1);
+            glm::vec4 currNormalGLM = glm::vec4(currNormal.x,currNormal.y,currNormal.z,1);
+
+            glm::vec3 transPoint = transformPoint(currPointGLM,transform);
+            toReturn.append(transPoint.x);toReturn.append(transPoint.y);toReturn.append(transPoint.z);
+
+            glm::vec3 transNormal = transformPoint(currNormalGLM,itrans);
+            toReturn.append(transNormal.x);toReturn.append(transNormal.y);toReturn.append(transNormal.z);
+
+            toReturn.append(currTex.x);toReturn.append(currTex.y);
+        }
+    }
+    return toReturn;
+}
+
+glm::vec3 Obj::transformPoint(const glm::vec4 &point, const glm::mat4 &transform)  {
+    glm::vec4 worldPoint = transform*point;
+    return glm::vec3(worldPoint.x,worldPoint.y,worldPoint.z);
+}
+
 static QString str(const Obj::Index &i)
 {
     if (i.normal >= 0) {
