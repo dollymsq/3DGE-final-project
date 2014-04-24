@@ -41,25 +41,46 @@ void World::init(float aspectRatio)
     // Setup default render states
     glClearColor(0.1f, 0.1f, 0.1f, 1);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_COLOR_MATERIAL);
+//    glEnable(GL_COLOR_MATERIAL);
 
-    // Setup lighting
-    glEnable(GL_LIGHTING);
-    PxReal ambientColor[]	= { 0.0f, 0.1f, 0.2f, 0.0f };
-    PxReal diffuseColor[]	= { 1.0f, 1.0f, 1.0f, 0.0f };
-    PxReal specularColor[]	= { 0.0f, 0.0f, 0.0f, 0.0f };
-    PxReal position[]		= { 100.0f, 100.0f, 400.0f, 1.0f };
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientColor);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseColor);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
-    glLightfv(GL_LIGHT0, GL_POSITION, position);
-    glEnable(GL_LIGHT0);
+//    // Setup lighting
+//    glEnable(GL_LIGHTING);
+//    PxReal ambientColor[]	= { 0.0f, 0.1f, 0.2f, 0.0f };
+//    PxReal diffuseColor[]	= { 1.0f, 1.0f, 1.0f, 0.0f };
+//    PxReal specularColor[]	= { 0.0f, 0.0f, 0.0f, 0.0f };
+//    PxReal position[]		= { 100.0f, 100.0f, 400.0f, 1.0f };
+//    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientColor);
+//    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseColor);
+//    glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
+//    glLightfv(GL_LIGHT0, GL_POSITION, position);
+//    glEnable(GL_LIGHT0);
 
     m_subTimer.start();
 
     m_dyanmicsCount = 40;
     m_dynamicsMessage = "Number of Balls Left: " + QString::number(m_dyanmicsCount);
 
+    initShaders();
+}
+
+void World::initShaders()
+{
+    // Override system locale until shaders are compiled
+    setlocale(LC_NUMERIC, "C");
+
+    if (!m_program.addShaderFromSourceFile(QGLShader::Vertex, ":/shaders/simple.vert"))
+        exit(EXIT_FAILURE);
+
+    if (!m_program.addShaderFromSourceFile(QGLShader::Fragment, ":/shaders/simple.frag"))
+        exit(EXIT_FAILURE);
+
+    if (!m_program.link())
+        exit(EXIT_FAILURE);
+
+    if (!m_program.bind())
+        exit(EXIT_FAILURE);
+
+    setlocale(LC_ALL, "");
 }
 
 void World::draw(QPainter *m_painter)
@@ -67,7 +88,7 @@ void World::draw(QPainter *m_painter)
     glEnable(GL_DEPTH_TEST);
 
 
-    glColor4f(0.0f, 0.1f, 0.1f, 1.0f);
+    glColor4f(1.0f, 0.1f, 0.1f, 1.0f);
 
     PxScene* scene;
     PxGetPhysics().getScenes(&scene,1);

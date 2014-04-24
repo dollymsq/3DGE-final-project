@@ -18,7 +18,7 @@
 #include "puzzles.h"
 #include <QtGui/QPainter>
 #include <QElapsedTimer>
-
+#include <QGLShaderProgram>
 
 // connection for physx debugger
 #define PVD_HOST "127.0.0.1"
@@ -97,7 +97,9 @@ private:
 
     Camera m_camera;
     QElapsedTimer m_subTimer;
+    QGLShaderProgram m_program;
 
+    void initShaders();
 };
 
 #endif // WORLD_H
