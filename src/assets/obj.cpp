@@ -2,6 +2,7 @@
 #include <qgl.h>
 #include <QFile>
 #include <QTextStream>
+#include <glm/common.hpp>
 
 void OBJ::draw() const
 {
@@ -83,6 +84,44 @@ bool OBJ::write(const QString &path) const
 inline int relativeIndex(int index, int count)
 {
     return index >= 0 ? index - 1 : count + index;
+}
+
+QVector<float> OBJ::transform(const glm::mat4 &transform) {
+    QVector<float> toReturn;
+    glm::mat4 itrans = glm::inverseTranspose(transform);
+    for(int i = 0; i < triangles.size(); i++)  {
+        Index a = tri.a;
+        Index b = tri.b;
+        Index c = tri.c;
+
+        QVector<Index> v;
+        v.append(a);
+        v.append(b);
+        v.append(c);
+
+        for(int j = 0; j < 3; j++)  {
+            Index curr = v.at(j);
+            Vector3 currPoint = vertices[curr.vertex];
+            Vector3 currNormal = normals[curr.normal];
+            Vector2 currTex = normals[curr.coord];
+            glm::vec4 currPointGLM = glm::vec3(currPoint.x,currPoint.y,currPoint.z,1);
+            glm::vec4 currNormalGLM = glm::vec3(currNormal.x,currNormal.y,currNormal.z,1);
+
+            glm::vec3 transPoint = transformPoint(currPointGLM,transform);
+            toReturn.append(transPoint.x);toReturn.append(transPoint.y);toReturn.append(transPoint.z);
+
+            glm::vec3 transNormal = transformPoint(currNormalGLM,itrans);
+            toReturn.append(transNormal.x);toReturn.append(transNormal.y);toReturn.append(transNormal.z);
+
+            toReturn.append(currTex.x);toReturn.append(currTex.y);
+        }
+    }
+    return toReturn;
+}
+
+glm::vec3 OBJ::transformPoint(const glm::vec4 &point, const glm::mat4 &transform)  {
+    glm::vec4 worldPoint = transform*point;
+    return glm::vec3(worldPoint.x,worldPoint.y,worldPoint.z);
 }
 
 OBJ::Index OBJ::getIndex(const QString &str) const

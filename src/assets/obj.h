@@ -43,7 +43,8 @@ public:
     void draw() const;
     bool read(const QString &path);
     bool write(const QString &path) const;
-    void transform(const glm::mat4 &transform);
+    QVector<float> transform(const glm::mat4 &transform);
+    glm::vec3 transformPoint(const glm::vec4 &point, const glm::mat4 &transform);
 
 private:
     Index getIndex(const QString &str) const;
