@@ -10,7 +10,7 @@ struct LEvent  {
    glm::vec3 currentUp,currentLeft,currentDir,currentPos;
 //   glm::mat3 currentRot;
    float currentThickness;
-   glm::mat4 currentRotations;
+   QPair<glm::vec3,float> currentRotation;
 };
 
 #endif // LEVENT_H
