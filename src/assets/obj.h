@@ -58,7 +58,7 @@ public:
     QVector<glm::vec3> normals;
     QVector<Triangle> triangles;
 
-    void draw(GLuint pos, GLuint normal, GLuint tex) const;
+    void draw() const;
     bool read(const QString &path);
     bool write(const QString &path) const;
     QVector<float> transform(const glm::mat4 &transform);

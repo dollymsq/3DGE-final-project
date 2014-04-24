@@ -30,10 +30,10 @@ World::~World()
     delete m_puzzles;
 }
 
-void World::init(float wid_hei)
+void World::init(float aspectRatio)
 {
     // camera
-    m_camera.setAspectRatio(wid_hei);
+    m_camera.setAspectRatio(aspectRatio);
 
     initializeOpenGLFunctions();
     initPhysics(true);
@@ -54,8 +54,6 @@ void World::init(float wid_hei)
     glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
     glLightfv(GL_LIGHT0, GL_POSITION, position);
     glEnable(GL_LIGHT0);
-
-
 
     m_subTimer.start();
 
@@ -122,7 +120,6 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
         return dynamic;
     }
 }
-
 
 void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 {
@@ -293,7 +290,7 @@ void World::renderGeometry(const PxGeometryHolder& h)
             glScalef(h.box().halfExtents.x, h.box().halfExtents.y, h.box().halfExtents.z);
             glPushMatrix();
                 glScalef(2,2,2);
-                cubeMesh.draw(0,0,0);
+                cubeMesh.draw();
             glPopMatrix();
         }
         break;
@@ -302,7 +299,7 @@ void World::renderGeometry(const PxGeometryHolder& h)
             float diam = h.sphere().radius * 2;
             glPushMatrix();
                 glScalef(diam, diam, diam);
-                sphereMesh.draw(0,0,0);
+                sphereMesh.draw();
             glPopMatrix();
         }
         break;
