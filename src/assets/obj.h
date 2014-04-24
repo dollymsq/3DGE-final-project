@@ -1,20 +1,19 @@
 #ifndef OBJ_H
 #define OBJ_H
 
-#include <glm/vec3.hpp>
-#include <glm/vec2.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <glm/common.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/ext.hpp>
 
+#include "math/vector.h"
 #include <QVector>
 
 struct Vertex;
 
 // A simple parser that reads and writes Wavefront .obj files
-class Obj
+class OBJ
 {
 public:
-    Obj(const QString &path);
-
     struct Index
     {
         int vertex;
@@ -36,14 +35,15 @@ public:
         Triangle(const Index &a, const Index &b, const Index &c) : a(a), b(b), c(c) {}
     };
 
-    QVector<glm::vec3> vertices;
-    QVector<glm::vec2> coords;
-    QVector<glm::vec3> normals;
+    QVector<Vector3> vertices;
+    QVector<Vector2> coords;
+    QVector<Vector3> normals;
     QVector<Triangle> triangles;
 
     void draw() const;
     bool read(const QString &path);
     bool write(const QString &path) const;
+    void transform(const glm::mat4 &transform);
 
 private:
     Index getIndex(const QString &str) const;
