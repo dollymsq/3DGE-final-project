@@ -84,7 +84,7 @@ void World::init(float aspectRatio)
     // Setup default render states
     glClearColor(0.1f, 0.1f, 0.1f, 1);
     glEnable(GL_DEPTH_TEST);
-<<<<<<< HEAD
+//<<<<<<< HEAD
     glEnable(GL_COLOR_MATERIAL);
 
     // Setup lighting
@@ -98,7 +98,6 @@ void World::init(float aspectRatio)
     glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
     glLightfv(GL_LIGHT0, GL_POSITION, position);
     glEnable(GL_LIGHT0);
-=======
 //    glEnable(GL_COLOR_MATERIAL);
 
 //    // Setup lighting
@@ -112,7 +111,6 @@ void World::init(float aspectRatio)
 //    glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
 //    glLightfv(GL_LIGHT0, GL_POSITION, position);
 //    glEnable(GL_LIGHT0);
->>>>>>> 35381bdd04eff84f47e3d8357261cdc1e524b6fb
 
     m_subTimer.start();
 
