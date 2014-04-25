@@ -16,7 +16,7 @@ public:
     void draw();
     void drawLines();
     void generate(QString L);
-    QVector<float> generateVBO();
+    int generateVBO();
 //    glm::vec3 getPosition();
 private:
     glm::vec3 m_pos;

@@ -57,7 +57,7 @@ void Tree::draw()  {
 }
 
 void Tree::addrotation(glm::mat4 &rotation)  {
-    m_rotations.append(rotation);
+//    m_rotations.append(rotation);
 }
 
 void Tree::generate(QString L)  {
@@ -71,7 +71,7 @@ void Tree::generate(QString L)  {
     QPair<Command,float> currCommand;
     QVector<glm::vec4> currentRotations;
 //    glm::mat4 currentRot;
-    std::cout << currentRot[0][0] << std::endl;
+//    std::cout << currentRot[0][0] << std::endl;
     currCommand.first = CONTINUE;
     glm::mat3 rotation;
     QPair<glm::vec3,float> currentRot;
