@@ -20,10 +20,7 @@ PxFilterFlags WorldFilterShader(
 
     // trigger the contact callback for pairs (A,B) where
     // the filtermask of A contains the ID of B and vice versa.
-    if((filterData0.word0 != 0 || filterData1.word1 != 0) || (filterData1.word0 !=0 || filterData0.word1!= 0))
-    {
 
-    }
     if((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
         pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
 
@@ -221,6 +218,10 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 //                qDebug() <<PxReal(j*2) - PxReal(size-i)<<","<<PxReal(i*2+1)<<","<<-PxReal(k) + PxReal(size-k);
 			    PxRigidDynamic* body = m_physics->createRigidDynamic(t.transform(localTm));
 
+                body->attachShape(*shape);
+			    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
+			    m_scene->addActor(*body);
+                //for debugging
                 if (i == 2 && j == 1 && k == 1) {
                     if (!m_redBlock)
                     {
@@ -230,13 +231,6 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 
                     }
                 }
-
-                body->attachShape(*shape);
-			    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
-			    m_scene->addActor(*body);
-                //for debugging
-                setupFiltering(body, FilterGroup::eRED_BOX, FilterGroup::eBALL);
-                setupFiltering(body, FilterGroup::eRED_BOX, FilterGroup::eRED_BOX);
 
 
                 shape->release();
