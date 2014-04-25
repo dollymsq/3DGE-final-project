@@ -4,6 +4,49 @@
 
 Tree m_tree;
 
+PxFilterFlags WorldFilterShader(
+    PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+    PxFilterObjectAttributes attributes1, PxFilterData filterData1,
+    PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
+{
+    // let triggers through
+    if(PxFilterObjectIsTrigger(attributes0) || PxFilterObjectIsTrigger(attributes1))
+    {
+        pairFlags = PxPairFlag::eTRIGGER_DEFAULT;
+        return PxFilterFlag::eDEFAULT;
+    }
+    // generate contacts for all that were not filtered above
+    pairFlags = PxPairFlag::eCONTACT_DEFAULT;
+
+    // trigger the contact callback for pairs (A,B) where
+    // the filtermask of A contains the ID of B and vice versa.
+    if((filterData0.word0 != 0 || filterData1.word1 != 0) || (filterData1.word0 !=0 || filterData0.word1!= 0))
+    {
+
+    }
+    if((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
+        pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
+
+
+    return PxFilterFlag::eDEFAULT;
+}
+
+void setupFiltering(PxRigidActor* actor, PxU32 filterGroup, PxU32 filterMask)
+{
+        PxFilterData filterData;
+        filterData.word0 = filterGroup; // word0 = own ID
+        filterData.word1 = filterMask;  // word1 = ID mask to filter pairs that trigger a contact callback;
+        const PxU32 numShapes = actor->getNbShapes();
+        PxShape** shapes = (PxShape**) malloc(sizeof(PxShape*)*numShapes);
+        actor->getShapes(shapes, numShapes);
+        for(PxU32 i = 0; i < numShapes; i++)
+        {
+                PxShape* shape = shapes[i];
+                shape->setSimulationFilterData(filterData);
+        }
+        delete[] shapes;
+}
+
 World::World() :
     sphereMesh("sphere.obj"),
     cubeMesh("cube.obj"),
@@ -54,8 +97,6 @@ void World::init(float wid_hei)
     glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
     glLightfv(GL_LIGHT0, GL_POSITION, position);
     glEnable(GL_LIGHT0);
-
-
 
     m_subTimer.start();
 
@@ -118,6 +159,10 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
         dynamic->setAngularDamping(0.5f);
         dynamic->setLinearVelocity(velocity);
         m_scene->addActor(*dynamic);
+        setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eRED_BOX);
+        //for debugging
+//        setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eBALL);
+
         m_dynamicsMessage = "Number of Dynamics: " + QString::number(m_dyanmicsCount);
         return dynamic;
     }
@@ -126,7 +171,7 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
 
 void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 {
-    PxShape* shape = m_physics->createShape(PxBoxGeometry(halfExtent, halfExtent, halfExtent), *m_material);
+//    PxShape* shape = m_physics->createShape(PxBoxGeometry(halfExtent, halfExtent, halfExtent), *m_material);
 
     for(PxU32 i=0; i<size;i++)
     {
@@ -134,9 +179,9 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 	    {
 		    for(PxU32 k=0;k<size-i;k++)
 		    {
-			    PxTransform localTm(PxVec3(PxReal(j*2) - PxReal(size-i),
+                PxShape* shape = m_physics->createShape(PxBoxGeometry(halfExtent, halfExtent, halfExtent), *m_material, true);
+                PxTransform localTm(PxVec3(PxReal(j*2) - PxReal(size-i),
                                            PxReal(i*2+1),
-                                          /*-PxReal(k) + PxReal(size-k)*/
                                            PxReal(k*2) - PxReal(size-i))
                                            * halfExtent);
 //                qDebug() <<PxReal(j*2) - PxReal(size-i)<<","<<PxReal(i*2+1)<<","<<-PxReal(k) + PxReal(size-k);
@@ -146,22 +191,28 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
                     if (!m_redBlock)
                     {
                         m_redBlock = body;
-                        m_redBlockOriPos = PxVec3(PxReal(j*2) - PxReal(size-i),
-                                                  PxReal(i*2+1),
-                                                 -PxReal(k) + PxReal(size-k))
-                                                  * halfExtent;
+
+                        setupFiltering(body, FilterGroup::eRED_BOX, FilterGroup::eBALL);
+
                     }
                 }
 
-			    body->attachShape(*shape);
+                body->attachShape(*shape);
 			    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
 			    m_scene->addActor(*body);
+                //for debugging
+                setupFiltering(body, FilterGroup::eRED_BOX, FilterGroup::eBALL);
+                setupFiltering(body, FilterGroup::eRED_BOX, FilterGroup::eRED_BOX);
+
+
+                shape->release();
+
 		    }
 	    }
 
     }
 
-    shape->release();
+//    shape->release();
 }
 
 void World::initPhysics(bool interactive)
@@ -181,7 +232,8 @@ void World::initPhysics(bool interactive)
     sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
     m_dispatcher = PxDefaultCpuDispatcherCreate(2);
     sceneDesc.cpuDispatcher	= m_dispatcher;
-    sceneDesc.filterShader	= PxDefaultSimulationFilterShader;
+    sceneDesc.filterShader	= WorldFilterShader;
+    sceneDesc.simulationEventCallback	= this;
     m_scene = m_physics->createScene(sceneDesc);
 
     m_material = m_physics->createMaterial(0.5f, 0.5f, 0.6f);
@@ -410,4 +462,27 @@ void World::enableLeft(bool flag)
 void World::enableRight(bool flag)
 {
     m_camera.pressingRight = flag;
+}
+
+void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs)
+{
+//	for(PxU32 i=0; i < nbPairs; i++)
+//	{
+//		const PxContactPair& cp = pairs[i];
+
+//		if(cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
+//		{
+//			if((pairHeader.actors[0] == mSubmarineActor) || (pairHeader.actors[1] == mSubmarineActor))
+//			{
+//				PxActor* otherActor = (mSubmarineActor == pairHeader.actors[0]) ? pairHeader.actors[1] : pairHeader.actors[0];
+//				Seamine* mine =  reinterpret_cast<Seamine*>(otherActor->userData);
+//				// insert only once
+//				if(std::find(mMinesToExplode.begin(), mMinesToExplode.end(), mine) == mMinesToExplode.end())
+//					mMinesToExplode.push_back(mine);
+
+//				break;
+//			}
+//		}
+//	}
+    qDebug() <<"contact";
 }
