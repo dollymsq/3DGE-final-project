@@ -81,7 +81,7 @@ void World::init(float aspectRatio)
     // Setup default render states
     glClearColor(0.1f, 0.1f, 0.1f, 1);
     glEnable(GL_DEPTH_TEST);
-//<<<<<<< HEAD
+
     glEnable(GL_COLOR_MATERIAL);
 
     // Setup lighting
@@ -95,19 +95,6 @@ void World::init(float aspectRatio)
     glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
     glLightfv(GL_LIGHT0, GL_POSITION, position);
     glEnable(GL_LIGHT0);
-//    glEnable(GL_COLOR_MATERIAL);
-
-//    // Setup lighting
-//    glEnable(GL_LIGHTING);
-//    PxReal ambientColor[]	= { 0.0f, 0.1f, 0.2f, 0.0f };
-//    PxReal diffuseColor[]	= { 1.0f, 1.0f, 1.0f, 0.0f };
-//    PxReal specularColor[]	= { 0.0f, 0.0f, 0.0f, 0.0f };
-//    PxReal position[]		= { 100.0f, 100.0f, 400.0f, 1.0f };
-//    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientColor);
-//    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseColor);
-//    glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
-//    glLightfv(GL_LIGHT0, GL_POSITION, position);
-//    glEnable(GL_LIGHT0);
 
     m_subTimer.start();
 
@@ -220,8 +207,7 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 
                 body->attachShape(*shape);
 			    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
-			    m_scene->addActor(*body);
-                //for debugging
+                m_scene->addActor(*body);
                 if (i == 2 && j == 1 && k == 1) {
                     if (!m_redBlock)
                     {
@@ -323,17 +309,17 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
             if (actors[i] == m_redBlock)
             {
                 glColor4f(0.9f, 0, 0, 1.0f);
-                m_redBlockPos = shapePose.getPosition();
-                if (!m_redBlockPosInit) {
-                    m_redBlockPosInit = true;
-                    m_redBlockOriPos = m_redBlockPos;
-                }
-                if((m_redBlockOriPos - m_redBlockPos).magnitude() >=  1.5f && !m_puzzleSolved)
-                {
-                    emit m_puzzles->puzzlesSolved("You have found the hidden box");
-                    m_puzzleSolved = true;
-                    //m_puzzles->infoToPrint= "You have found the hidden box";
-                }
+//                m_redBlockPos = shapePose.getPosition();
+//                if (!m_redBlockPosInit) {
+//                    m_redBlockPosInit = true;
+//                    m_redBlockOriPos = m_redBlockPos;
+//                }
+//                if((m_redBlockOriPos - m_redBlockPos).magnitude() >=  1.5f && !m_puzzleSolved)
+//                {
+//                    emit m_puzzles->puzzlesSolved("You have found the hidden box");
+//                    m_puzzleSolved = true;
+//                    //m_puzzles->infoToPrint= "You have found the hidden box";
+//                }
             }
             else
                 glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
@@ -512,5 +498,6 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
 //			}
 //		}
 //	}
-    qDebug() <<"contact";
+    emit m_puzzles->puzzlesSolved("You have hit the hidden box");
+
 }

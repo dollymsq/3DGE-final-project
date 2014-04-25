@@ -18,10 +18,9 @@
 #include "puzzles.h"
 #include <QtGui/QPainter>
 #include <QElapsedTimer>
-//<<<<<<< HEAD
-//=======
+
 #include <QGLShaderProgram>
-//>>>>>>> 35381bdd04eff84f47e3d8357261cdc1e524b6fb
+
 
 // connection for physx debugger
 #define PVD_HOST "127.0.0.1"
