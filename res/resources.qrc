@@ -4,5 +4,7 @@
         <file>meshes/cube.obj</file>
         <file>meshes/sphere.obj</file>
         <file>meshes/pyramid.obj</file>
+        <file>shaders/simple.frag</file>
+        <file>shaders/simple.vert</file>
     </qresource>
 </RCC>

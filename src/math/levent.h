@@ -4,11 +4,13 @@
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
 #include <glm/mat3x3.hpp>
+#include <glm/mat4x4.hpp>
 
 struct LEvent  {
    glm::vec3 currentUp,currentLeft,currentDir,currentPos;
-   glm::mat3 currentRot;
+//   glm::mat3 currentRot;
    float currentThickness;
+   QPair<glm::vec3,float> currentRotation;
 };
 
 #endif // LEVENT_H

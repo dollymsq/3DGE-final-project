@@ -18,6 +18,10 @@
 #include "puzzles.h"
 #include <QtGui/QPainter>
 #include <QElapsedTimer>
+<<<<<<< HEAD
+=======
+#include <QGLShaderProgram>
+>>>>>>> 35381bdd04eff84f47e3d8357261cdc1e524b6fb
 
 // connection for physx debugger
 #define PVD_HOST "127.0.0.1"
@@ -45,7 +49,7 @@ public:
     World();
     virtual ~World();
 
-    void init(float wid_hei);
+    void init(float aspectRatio);
     void draw(QPainter *m_painter);
     void tick(float seconds);
 
@@ -115,7 +119,9 @@ private:
 
     Camera m_camera;
     QElapsedTimer m_subTimer;
+    QGLShaderProgram m_program;
 
+    void initShaders();
 };
 
 #endif // WORLD_H
