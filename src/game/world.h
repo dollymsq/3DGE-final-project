@@ -19,15 +19,28 @@
 #include <QtGui/QPainter>
 #include <QElapsedTimer>
 
+#include <QGLShaderProgram>
+
 
 // connection for physx debugger
 #define PVD_HOST "127.0.0.1"
 #define MAX_NUM_ACTOR_SHAPES 125
 #include <PxPhysicsAPI.h>
+#include "PxSimulationEventCallback.h"
 using namespace physx;
 
+struct FilterGroup
+{
+    enum Enum
+    {
+        eBALL   		= (1 << 0),
+        eRED_BOX		= (1 << 1),
+        eORD_BOX		= (1 << 2),
+        //
+    };
+};
 
-class World : public QObject, protected QOpenGLFunctions
+class World : public QObject, protected QOpenGLFunctions, public PxSimulationEventCallback
 {
     Q_OBJECT
 
@@ -56,6 +69,14 @@ public:
     glm::mat4 getPMatrix();
     glm::mat4 getVMatrix();
     void rotateMouse(glm::vec2 delta);
+
+    virtual void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs);
+    virtual void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) {}
+    virtual void onWake(PxActor** actors, PxU32 count) {}
+    virtual void onSleep(PxActor** actors, PxU32 count) {}
+    virtual void onTrigger(PxTriggerPair* pairs, PxU32 count) {}
+
+
 
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
@@ -97,7 +118,9 @@ private:
 
     Camera m_camera;
     QElapsedTimer m_subTimer;
+    QGLShaderProgram m_program;
 
+    void initShaders();
 };
 
 #endif // WORLD_H

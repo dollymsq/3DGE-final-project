@@ -12,7 +12,7 @@ enum {
 };
 
 #ifdef DEBUG_OPENGL
-#define gl Q_ASSERT_X(g_glFunctions != NULL, __FILE__, "invalid opengl call"); g_glFunctions
+#define gl Q_ASSERT_X(g_glFunctions != NULL, Q_FUNC_INFO, "invalid opengl call"); g_glFunctions
 #else
 #define gl g_glFunctions
 #endif

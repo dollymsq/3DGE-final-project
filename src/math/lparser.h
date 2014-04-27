@@ -6,6 +6,7 @@
 #include <QPair>
 #include <QHash>
 #include <QVector>
+#include <cmath>
 
 class LParser
 {

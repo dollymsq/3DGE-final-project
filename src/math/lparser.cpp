@@ -113,7 +113,7 @@ QString LParser::rewrite(QHash<QChar,QVector<QPair<QString,float> > > *rules, QS
                         param /= numOperator;
                         break;
                     case EXPONENT:
-                        param = pow(param,numOperator);
+                        param = std::pow(param,numOperator);
                         break;
                     default:
                         break;

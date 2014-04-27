@@ -65,10 +65,10 @@ void Tree::draw()  {
     gl->glBindBuffer(GL_ARRAY_BUFFER,0);
 }
 
+
 //void Tree::addrotation(glm::mat4 &rotation)  {
 //    m_rotations.append(rotation);
 //}
-
 void Tree::generate(QString L)  {
     QVector<LEvent> eventStack;
     glm::vec3 currentDir = glm::vec3(0,1,0);
