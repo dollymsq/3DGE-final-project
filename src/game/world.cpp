@@ -59,8 +59,6 @@ World::World() :
     m_puzzleSolved(false)
 {
     m_puzzles = new Puzzles();
-    m_tree = Tree();
-    m_tree.generate(LParser::testTree());
 }
 
 World::~World()
@@ -102,6 +100,9 @@ void World::init(float aspectRatio)
     m_dynamicsMessage = "Number of Balls Left: " + QString::number(m_dyanmicsCount);
 
     initShaders();
+
+    m_tree = Tree();
+    m_tree.generate(LParser::testTree());
 }
 
 void World::initShaders()
@@ -142,6 +143,7 @@ void World::draw(QPainter *m_painter)
     }
 
     m_tree.drawLines();
+    m_tree.draw();
 
     glDisable(GL_LIGHTING);
 
