@@ -78,14 +78,18 @@ void Tree::generate(QString L)  {
     int currPointer = 0;
     float currentThickness = 1;
     QPair<Command,float> currCommand;
-    QVector<glm::vec4> currentRotations;
-//    glm::mat4 currentRot;
+//    QVector<glm::vec4> currentRotations;
+//    glm::mat4 currentRot(1.0f);
 //    std::cout << currentRot[0][0] << std::endl;
     currCommand.first = CONTINUE;
     glm::mat3 rotation;
-    QPair<glm::vec3,float> currentRot;
-    currentRot.first = currentDir;
-    currentRot.second = 0.0f;
+//    QPair<glm::vec3,float> currentRot;
+//    currentRot.first = currentDir;
+//    currentRot.second = 0.0f;
+
+    QVector<glm::mat4> currentCTMStack;
+//    currentCTMStack += glm::translate(glm::mat4(1.f),m_pos);
+
     while(currCommand.first != STOP)  {
         currCommand = LParser::parseString(L,currPointer);
         bool toRotate = false;
@@ -95,11 +99,19 @@ void Tree::generate(QString L)  {
         case F:
             m_points.append(currentPos);
             m_thick.append(currentThickness);
-            m_rotations.append(currentRot);
+//            m_rotations.append(currentRot);
+//            std::cout << "length here: " << param << std::endl;
+//            std::cout << "currentDir length: " << currentDir.length() << std::endl;
+//            std::cout << "calc length: " << ((currentPos + currentDir*param) - currentPos).length() << std::endl;
+
+//            currentCTMStack += glm::translate(glm::mat4(1.f),((currentPos + currentDir*param)+(currentPos))/2.0f);
+
             currentPos += currentDir*param;
             m_points.append(currentPos);
             m_thick.append(currentThickness);
-            m_rotations.append(currentRot);
+//            m_rotations.append(currentRot);
+            m_ctms.append(currentCTMStack);
+            m_ctms.append(currentCTMStack);
             break;
         case f:
             currentPos += currentDir*param;
@@ -108,9 +120,10 @@ void Tree::generate(QString L)  {
             rotation = glm::mat3(cos(param*M_PI/180.0f),sin(param*M_PI/180.0f),0,
                                  -1.0f*sin(param*M_PI/180.0f),cos(param*M_PI/180.0f),0,
                                  0,0,1);
-//            currentRot = glm::rotate(currentRot,(float)(param*M_PI/180.0f),currentUp);
-            currentRot.first = currentUp;
-            currentRot.second = param*M_PI/180.0f;
+//            currentRot = glm::rotate(currentRot,param,currentUp);
+            currentCTMStack += glm::rotate(glm::mat4(1.f),param,currentUp);
+//            currentRot.first = currentUp;
+//            currentRot.second = param;
             toRotate = true;
 
             break;
@@ -118,45 +131,50 @@ void Tree::generate(QString L)  {
             rotation = glm::mat3(cos(-1.0f*param*M_PI/180.0f),sin(-1.0f*param*M_PI/180.0f),0,
                                  -1.0f*sin(-1.0f*param*M_PI/180.0f),cos(-1.0f*param*M_PI/180.0f),0,
                                  0,0,1);
-//            currentRot = glm::rotate(currentRot,-1.0f*(float)(param*M_PI/180.0f),currentUp);
-            currentRot.first = currentUp;
-            currentRot.second = -1.0f*param*M_PI/180.0f;
+            currentCTMStack += glm::rotate(glm::mat4(1.f),-1.0f*param,currentUp);
+//            currentRot = glm::rotate(currentRot,-1.0f*param,currentUp);
+//            currentRot.first = currentUp;
+//            currentRot.second = -1.0f*param;
             toRotate = true;
             break;
         case ROLL:
             rotation = glm::mat3(1,0,0,
                                  0,cos(param*M_PI/180.0f),-1.0f*sin(param*M_PI/180.0f),
                                  0,sin(param*M_PI/180.0f),cos(param*M_PI/180.0f));
-//            currentRot = glm::rotate(currentRot,(float)(param*M_PI/180.0f),currentDir);
-            currentRot.first = currentDir;
-            currentRot.second = param*M_PI/180.0f;
+            currentCTMStack += glm::rotate(glm::mat4(1.f),param,currentDir);
+//            currentRot = glm::rotate(currentRot,param,currentDir);
+//            currentRot.first = currentDir;
+//            currentRot.second = param;
             toRotate = true;
             break;
         case NEGROLL:
             rotation = glm::mat3(1,0,0,
                                  0,cos(-1.0f*param*M_PI/180.0f),-1.0f*sin(-1.0f*param*M_PI/180.0f),
                                  0,sin(-1.0f*param*M_PI/180.0f),cos(-1.0f*param*M_PI/180.0f));
-//            currentRot = glm::rotate(currentRot,-1.0f*(float)(param*M_PI/180.0f),currentDir);
-            currentRot.first = currentDir;
-            currentRot.second = -1.0f*param*M_PI/180.0f;
+            currentCTMStack += glm::rotate(glm::mat4(1.f),-1.0f*param,currentDir);
+//            currentRot = glm::rotate(currentRot,-1.0f*param,currentDir);
+//            currentRot.first = currentDir;
+//            currentRot.second = -1.0f*param;
             toRotate = true;
             break;
         case PITCH:
             rotation = glm::mat3(cos(param*M_PI/180.0f),0,-1.0f*sin(param*M_PI/180.0f),
                                  0,1,0,
                                  sin(param*M_PI/180.0f),0,cos(param*M_PI/180.0f));
-//            currentRot = glm::rotate(currentRot,(float)(param*M_PI/180.0f),currentLeft);
-            currentRot.first = currentLeft;
-            currentRot.second = param*M_PI/180.0f;
+            currentCTMStack += glm::rotate(glm::mat4(1.f),param,currentLeft);
+//            currentRot = glm::rotate(currentRot,param,currentLeft);
+//            currentRot.first = currentLeft;
+//            currentRot.second = param;
             toRotate = true;
             break;
         case NEGPITCH:
             rotation = glm::mat3(cos(-1.0f*param*M_PI/180.0f),0,-1.0f*sin(-1.0f*param*M_PI/180.0f),
                                  0,1,0,
                                  sin(-1.0f*param*M_PI/180.0f),0,cos(-1.0f*param*M_PI/180.0f));
-//            currentRot = glm::rotate(currentGL_TRIANGLES,0,m_bufferSizes.value(i)Rot,-1.0f*(float)(param*M_PI/180.0f),currentLeft);
-            currentRot.first = currentLeft;
-            currentRot.second = -1.0f*param*M_PI/180.0f;
+            currentCTMStack += glm::rotate(glm::mat4(1.f),-1.0f*param,currentLeft);
+//            currentRot = glm::rotate(currentRot,-1.0f*param,currentLeft);
+//            currentRot.first = currentLeft;
+//            currentRot.second = -1.0f*param;
             toRotate = true;
             break;
         case LINEWIDTH:
@@ -172,7 +190,8 @@ void Tree::generate(QString L)  {
             currentLeft = e.currentLeft;
             currentPos = e.currentPos;
             currentThickness = e.currentThickness;
-            currentRot = e.currentRotation;
+//            currentRot = e.currentRotation;
+            currentCTMStack = e.currentCTMs;
             break;
         case PUSH:
             ePush.currentDir = currentDir;
@@ -180,7 +199,8 @@ void Tree::generate(QString L)  {
             ePush.currentPos = currentPos;
             ePush.currentUp = currentUp;
             ePush.currentThickness = currentThickness;
-            ePush.currentRotation = currentRot;
+//            ePush.currentRotation = currentRot;
+            ePush.currentCTMs = currentCTMStack;
             eventStack.push_back(ePush);
             break;
         default:
@@ -204,25 +224,37 @@ void Tree::generate(QString L)  {
 void Tree::generateVBO()  {
     QVector<float> currentVBO;
     Obj cylinder("cylinder_mesh.obj");
-    std::cout << "made it here" << std::endl;
     for(int i = 0; i < m_points.size(); i+=2)  {
-        glm::mat4 CTM,Trans1,Trans2,Rotate,Scale;
-        glm::mat4 ident(1.f);
-        Trans1 = glm::translate(ident,m_pos);
-        Trans2 = glm::translate(ident,(m_points.at(i+1) + m_points.at(i))/2.0f);
-        Rotate = glm::rotate(ident,m_rotations.at(i).second,m_rotations.at(i).first);
-        glm::vec3 scaleVec = glm::vec3(m_thick.at(i)/10.0f,(m_points.at(i+1) - m_points.at(i)).length(),m_thick.at(i)/10.0f);
-        Scale = glm::scale(ident,scaleVec);
-        CTM = Trans1*Trans2*Rotate*Scale;
+//        glm::mat4 CTM,Trans1,Trans2,Rotate,Scale;
+        std::cout << "iteration: " << i << std::endl;
+        std::cout << "size: " << m_ctms.size() << std::endl;
+        glm::mat4 CTM(1.f),Trans1;
+        QVector<glm::mat4> ctmStack = m_ctms.at(i);
+        CTM = glm::translate(CTM,m_pos);
+        CTM = glm::translate(CTM,(m_points.at(i+1) + m_points.at(i))/2.0f);
+        while(!ctmStack.isEmpty()) {
+            glm::mat4 transform = ctmStack.last();
+            ctmStack.pop_back();
+            CTM = CTM*transform;
+        }
+//        glm::mat4 ident(1.f);
+//        Rotate = glm::rotate(Trans2,m_rotations.at(i).second,m_rotations.at(i).first);
+//        Rotate = m_rotations.at(i);
+//        Rotate = glm::rotate()
+//        Rotate = Trans1*Trans2*m_rotations.at(i);
+//        std::cout << "length: " << glm::length((m_points.at(i+1) - m_points.at(i))) << std::endl;
+        std::cout << "made it here" << std::endl;
+        glm::vec3 scaleVec = glm::vec3(m_thick.at(i)/10.0f,glm::length((m_points.at(i+1) - m_points.at(i))),m_thick.at(i)/10.0f);
+        CTM = glm::scale(CTM,scaleVec);
+
+//        CTM = Trans1*Trans2*Rotate*Scale;
         currentVBO += cylinder.transform(CTM);
-        std::cout << "made it here at iteration: " << i << std::endl;
+        std::cout << "continuing: " << i << std::endl;
     }
-    std::cout << "pretty much made it!" << std::endl;
     m_bufferSize = currentVBO.size()/8.0f;
     gl->glGenBuffers(1, &m_buffer);
     gl->glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
     gl->glBufferData(GL_ARRAY_BUFFER, currentVBO.size()*sizeof(float), currentVBO.data(), GL_STATIC_DRAW);
-    std::cout << "made it." << std::endl;
 }
 
 

@@ -22,7 +22,9 @@ private:
     glm::vec3 m_pos;
     QVector<glm::vec3> m_points;
     QVector<float> m_thick;
-    QVector<QPair<glm::vec3,float> > m_rotations;
+//    QVector<glm::mat4> m_rotations;
+    QVector<QVector<glm::mat4> > m_ctms;
+//    QVector<QPair<glm::vec3,float> > m_rotations;
 //    void rotate(QVector<glm::mat4> &rotations);
 //    void addrotation(glm::mat4 &rotation);
     GLuint m_buffer,m_bufferSize;
