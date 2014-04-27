@@ -50,15 +50,24 @@ void Tree::drawLines()  {
 }
 
 void Tree::draw()  {
-    glPushMatrix();
-    glTranslatef(m_pos.x,m_pos.y,m_pos.z);
+    gl->glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
+    gl->glEnableClientState(GL_VERTEX_ARRAY);
+    gl->glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    gl->glEnableClientState(GL_NORMAL_ARRAY);
 
-    glPopMatrix();
+    GLuint stride = sizeof(float)*(3+3+2);
+    gl->glVertexPointer(3,GL_FLOAT,stride, (void*) 0);
+    gl->glNormalPointer(GL_FLOAT,stride,(void*) (3*sizeof(float)));
+    gl->glTexCoordPointer(2,GL_FLOAT,stride,(void*) (6*sizeof(float)));
+
+//    gl->glDrawArrays(GL_TRIANGLES,0,m_bufferSizes.value(i));
+    gl->glDrawArrays(GL_TRIANGLES,0,m_bufferSize);
+    gl->glBindBuffer(GL_ARRAY_BUFFER,0);
 }
 
-void Tree::addrotation(glm::mat4 &rotation)  {
-    m_rotations.append(rotation);
-}
+//void Tree::addrotation(glm::mat4 &rotation)  {
+//    m_rotations.append(rotation);
+//}
 
 void Tree::generate(QString L)  {
     QVector<LEvent> eventStack;
@@ -71,7 +80,7 @@ void Tree::generate(QString L)  {
     QPair<Command,float> currCommand;
     QVector<glm::vec4> currentRotations;
 //    glm::mat4 currentRot;
-    std::cout << currentRot[0][0] << std::endl;
+//    std::cout << currentRot[0][0] << std::endl;
     currCommand.first = CONTINUE;
     glm::mat3 rotation;
     QPair<glm::vec3,float> currentRot;
@@ -145,7 +154,7 @@ void Tree::generate(QString L)  {
             rotation = glm::mat3(cos(-1.0f*param*M_PI/180.0f),0,-1.0f*sin(-1.0f*param*M_PI/180.0f),
                                  0,1,0,
                                  sin(-1.0f*param*M_PI/180.0f),0,cos(-1.0f*param*M_PI/180.0f));
-//            currentRot = glm::rotate(currentRot,-1.0f*(float)(param*M_PI/180.0f),currentLeft);
+//            currentRot = glm::rotate(currentGL_TRIANGLES,0,m_bufferSizes.value(i)Rot,-1.0f*(float)(param*M_PI/180.0f),currentLeft);
             currentRot.first = currentLeft;
             currentRot.second = -1.0f*param*M_PI/180.0f;
             toRotate = true;
@@ -189,23 +198,31 @@ void Tree::generate(QString L)  {
             currentUp = glm::vec3(updateMat[0][2],updateMat[1][2],updateMat[2][2]);
         }
     }
+    generateVBO();
 }
 
-int Tree::generateVBO()  {
+void Tree::generateVBO()  {
     QVector<float> currentVBO;
-    Obj cylinder(":/meshes/cylinder_mesh.obj");
+    Obj cylinder("cylinder_mesh.obj");
+    std::cout << "made it here" << std::endl;
     for(int i = 0; i < m_points.size(); i+=2)  {
-        glm::mat4 CTM;
-        CTM = glm::translate(CTM,m_pos);
-        CTM = glm::translate(CTM,(m_points.at(i+1) + m_points.at(i))/2.0f);
-        CTM = glm::rotate(CTM,m_rotations.at(i).second,m_rotations.at(i).first);
-        glm::vec3 scaleVec = glm::vec3(m_thick.at(i),(m_points.at(i+1) - m_points.at(i)).length(),m_thick.at(i));
-        CTM = glm::scale(CTM,scaleVec);
+        glm::mat4 CTM,Trans1,Trans2,Rotate,Scale;
+        glm::mat4 ident(1.f);
+        Trans1 = glm::translate(ident,m_pos);
+        Trans2 = glm::translate(ident,(m_points.at(i+1) + m_points.at(i))/2.0f);
+        Rotate = glm::rotate(ident,m_rotations.at(i).second,m_rotations.at(i).first);
+        glm::vec3 scaleVec = glm::vec3(m_thick.at(i)/10.0f,(m_points.at(i+1) - m_points.at(i)).length(),m_thick.at(i)/10.0f);
+        Scale = glm::scale(ident,scaleVec);
+        CTM = Trans1*Trans2*Rotate*Scale;
         currentVBO += cylinder.transform(CTM);
+        std::cout << "made it here at iteration: " << i << std::endl;
     }
+    std::cout << "pretty much made it!" << std::endl;
+    m_bufferSize = currentVBO.size()/8.0f;
     gl->glGenBuffers(1, &m_buffer);
     gl->glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
     gl->glBufferData(GL_ARRAY_BUFFER, currentVBO.size()*sizeof(float), currentVBO.data(), GL_STATIC_DRAW);
+    std::cout << "made it." << std::endl;
 }
 
 

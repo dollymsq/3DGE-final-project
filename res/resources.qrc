@@ -4,5 +4,6 @@
         <file>meshes/cube.obj</file>
         <file>meshes/sphere.obj</file>
         <file>meshes/pyramid.obj</file>
+        <file>meshes/cylinder_mesh.obj</file>
     </qresource>
 </RCC>
