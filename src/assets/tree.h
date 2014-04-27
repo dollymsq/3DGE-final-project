@@ -5,6 +5,7 @@
 #include <glm/common.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtx/transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <QVector>
 #include <QPair>
 

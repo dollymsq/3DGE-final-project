@@ -103,6 +103,7 @@ void World::init(float aspectRatio)
 
     m_tree = Tree();
     m_tree.generate(LParser::testTree());
+//    m_tree.generate("F(2)[\(45)&(45)F(2)]/(45)&(45)F(2)e");
 }
 
 void World::initShaders()
@@ -141,6 +142,8 @@ void World::draw(QPainter *m_painter)
         scene->getActors(PxActorTypeSelectionFlag::eRIGID_DYNAMIC | PxActorTypeSelectionFlag::eRIGID_STATIC, (PxActor**)&actors[0], nbActors);
         renderActors(&actors[0], (PxU32)actors.size(), true);
     }
+
+    glEnable(GL_LIGHTING);
 
     m_tree.drawLines();
     m_tree.draw();
