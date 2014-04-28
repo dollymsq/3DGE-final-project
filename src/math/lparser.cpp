@@ -134,11 +134,11 @@ QString LParser::rewrite(QHash<QChar,QVector<QPair<QString,float> > > *rules, QS
 
 QString LParser::testTree()  {
     int steps = 10;
-    QString input = "!(1)F(2)A()e";
+    QString input = "!(1)F(8)A()e";
     QHash<QChar,QVector<QPair<QString,float> > > *rules = new QHash<QChar,QVector<QPair<QString,float> > >();
     QVector<QPair<QString, float> > firstInsert;
     QPair<QString,float> firstInsertPair;
-    firstInsertPair.first = "!(x+1)";
+    firstInsertPair.first = "!(x+2)";
     firstInsertPair.second = 1.0f;
     firstInsert.append(firstInsertPair);
     rules->insert('!',firstInsert);
@@ -146,9 +146,9 @@ QString LParser::testTree()  {
     QVector<QPair<QString, float> > secondInsert;
     QPair<QString,float> secondInsertPairOne, secondInsertPairTwo;
     secondInsertPairOne.second = .5;
-    secondInsertPairOne.first = "/(137)[+(20)!(1)F(1)A()]-(20)!(1)F(1)A()";
+    secondInsertPairOne.first = "/(137)[+(20)!(1)F(6)A()]-(20)!(1)F(6)A()";
     secondInsertPairTwo.second = .5;
-    secondInsertPairTwo.first = "/(137)-(20)!(1)F(1)A()";
+    secondInsertPairTwo.first = "/(137)-(20)!(1)F(6)A()";
     secondInsert.append(secondInsertPairOne);
     secondInsert.append(secondInsertPairTwo);
 

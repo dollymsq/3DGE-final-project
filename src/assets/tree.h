@@ -10,6 +10,7 @@
 #include <QPair>
 #include <PxPhysicsAPI.h>
 #include "PxSimulationEventCallback.h"
+#include <iostream>
 
 class Tree
 {
@@ -19,6 +20,9 @@ public:
     void draw();
     void drawLines();
     void generate(QString L);
+    QVector<glm::vec3> getPoints() {std::cout << m_points.size() << "meow" << std::endl; return m_points;}
+    QVector<float> getThickness() {return m_thick;}
+    glm::vec3 getPosition() {return m_pos;}
 //    QVector<PxVec3> getVerts(){return m_vertices;}
 private:
     void generateVBO();

@@ -12,6 +12,7 @@
 #include <QList>
 
 #include "assets/obj.h"
+#include "assets/tree.h"
 #include "scene/camera.h"
 
 #include <iostream>
@@ -85,6 +86,7 @@ public:
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
     PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z);
+    void createTreeActors(Tree &t);
     void initPhysics(bool interactive);
     void stepPhysics(bool interactive);
     void cleanupPhysics(bool interactive);

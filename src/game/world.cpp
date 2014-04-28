@@ -82,6 +82,11 @@ void World::init(float aspectRatio)
     m_camera.setAspectRatio(aspectRatio);
 
     initializeOpenGLFunctions();
+
+    m_tree = Tree();
+//    m_treeTexId = loadTexture("treebark.jpg");
+    m_tree.generate(LParser::testTree());
+
     initPhysics(true);
 
     // Setup default render states
@@ -109,10 +114,7 @@ void World::init(float aspectRatio)
 
     initShaders();
 
-    m_tree = Tree();
-    m_treeTexId = loadTexture("treebark.jpg");
-    m_tree.generate(LParser::testTree());
-//    m_tree.generate("F(2)[\(45)&(45)F(2)]/(45)&(45)F(2)e");
+//    m_treeTexId = loadTexture("treebark.jpg");
 }
 
 void World::initShaders()
@@ -156,10 +158,11 @@ void World::draw(QPainter *m_painter)
 
 //    m_tree.drawLines();
 
-    glBindTexture(GL_TEXTURE_2D,m_treeTexId);
-    glEnable(GL_TEXTURE_2D);
+//    glBindTexture(GL_TEXTURE_2D,m_treeTexId);
+//    glEnable(GL_TEXTURE_2D);
+    glColor3f(82.0f/255.0f,41.0f/255.0f,0.0f/255.0f);
     m_tree.draw();
-    glDisable(GL_TEXTURE_2D);
+//    glDisable(GL_TEXTURE_2D);
 
     glDisable(GL_LIGHTING);
 
@@ -249,6 +252,42 @@ PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal
     return body;
 }
 
+void World::createTreeActors(Tree &t)  {
+    glm::mat4 CTM;
+    QVector<glm::vec3> points = t.getPoints();
+    QVector<float> thickness = t.getThickness();
+    for(int i = 0; i < points.size(); i+=2)  {
+
+        CTM = glm::translate(CTM,t.getPosition());
+        CTM = glm::translate(CTM,(points.at(i+1) + points.at(i))/2.0f);
+
+        CTM *= glm::orientation(glm::normalize(points.at(i+1) - points.at(i)), glm::vec3(0,1,0));
+        glm::vec3 left = glm::normalize(glm::cross(glm::vec3(0,1,0),glm::normalize(points.at(i+1) - points.at(i))));
+
+        CTM = glm::rotate(CTM,(float)(M_PI/2.0f),glm::vec3(0,0,-1));
+        glm::vec3 scaleVec = glm::vec3(thickness.at(i)/10.0f,glm::length((points.at(i+1) - points.at(i))),thickness.at(i)/10.0f);
+        CTM = glm::scale(CTM,scaleVec);
+
+//        PxShape* cylinder = m_physics->createShape(PxCapsuleGeometry(1.0f,.5f),*m_material,false);
+        PxShape * cylinder = m_physics->createShape(PxBoxGeometry(thickness.at(i)/10.0f,glm::length((points.at(i+1) - points.at(i))),thickness.at(i)/10.0f), *m_material, true);
+
+        glm::vec3 pos = t.getPosition() + ((points.at(i+1) + points.at(i))/2.0f);
+        float angle = glm::angle(glm::vec3(0,1,0),glm::normalize(points.at(i+1) - points.at(i)));
+        PxQuat quat(0,PxVec3(0,1,0));
+        if(fabs(angle) > 1e-6)
+            quat = PxQuat(angle,PxVec3(left.x,left.y,left.z));
+        PxTransform transform(PxVec3(pos.x,pos.y,pos.z),quat);
+
+        PxRigidStatic* body = m_physics->createRigidStatic(transform);
+        body->attachShape(*cylinder);
+
+        body->setName("tree");
+        m_scene->addActor(*body);
+
+        cylinder->release();
+    }
+}
+
 void World::initPhysics(bool interactive)
 {
     m_foundation = PxCreateFoundation(PX_PHYSICS_VERSION, m_allocator, m_errorCallback);
@@ -281,13 +320,14 @@ void World::initPhysics(bool interactive)
     createStack(PxTransform(PxVec3(-40, 0, -40.0f)), 5, 2.0f);
     createStack(PxTransform(PxVec3(-40, 0, 40.0f)), 5, 2.0f);
 
-    createBox(PxTransform(PxVec3(-60,  60,  -80.0f)), 30, 60, 2);
-    createBox(PxTransform(PxVec3(-15,  15,  -80.0f)), 15, 15, 2);
-    createBox(PxTransform(PxVec3(-15,  90,  -80.0f)), 15, 30, 2);
-    m_hole = createBox(PxTransform(PxVec3(-15,  45,  -80.0f)), 15, 15, 2);
-    setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
-    createBox(PxTransform(PxVec3(30,  60,  -80.0f)), 30, 60, 2);
+    createTreeActors(m_tree);
 
+//    createBox(PxTransform(PxVec3(-60,  60,  -80.0f)), 30, 60, 2);
+//    createBox(PxTransform(PxVec3(-15,  15,  -80.0f)), 15, 15, 2);
+//    createBox(PxTransform(PxVec3(-15,  90,  -80.0f)), 15, 30, 2);
+//    m_hole = createBox(PxTransform(PxVec3(-15,  45,  -80.0f)), 15, 15, 2);
+//    setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
+//    createBox(PxTransform(PxVec3(30,  60,  -80.0f)), 30, 60, 2);
 
     if(!interactive)
         createDynamic(PxTransform(PxVec3(0,40,100)), PxSphereGeometry(10), PxVec3(0,-50,-100));
@@ -328,15 +368,15 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
         {
             const PxMat44 shapePose(PxShapeExt::getGlobalPose(*shapes[j], *actors[i]));
             PxGeometryHolder h = shapes[j]->getGeometry();
-
+            bool toRender = true;
             // render object
             glPushMatrix();
             glMultMatrixf((float*)&shapePose);
-
             if (actors[i] == m_redBlock)
                 glColor4f(0.9f, 0, 0, 1.0f);
-            else if (actors[i] == m_hole)
-                glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
+            else if (actors[i] == m_hole || actors[i]->getName() == "tree")
+//                glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
+                toRender = false;
             else
                 glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 
@@ -344,7 +384,8 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
 //                glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 //            else
 //                glColor4f(0.0f, 0.75f, 0.0f, 1.0f);
-            renderGeometry(h);
+            if(toRender)
+                renderGeometry(h);
             glPopMatrix();
 
             // notice this are really fake shadows

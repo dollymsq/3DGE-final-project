@@ -66,7 +66,7 @@ void Tree::generate(QString L)  {
     currentVecs.first = currentDir;
     currentVecs.second = currentUp;
     int currPointer = 0;
-    float currentThickness = 11;
+    float currentThickness = 22;
     float prevThickness = currentThickness;
     QPair<Command,float> currCommand;
     currCommand.first = CONTINUE;
