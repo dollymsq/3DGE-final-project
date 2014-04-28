@@ -8,6 +8,8 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <QVector>
 #include <QPair>
+#include <PxPhysicsAPI.h>
+#include "PxSimulationEventCallback.h"
 
 class Tree
 {
@@ -17,18 +19,17 @@ public:
     void draw();
     void drawLines();
     void generate(QString L);
-//    glm::vec3 getPosition();
+//    QVector<PxVec3> getVerts(){return m_vertices;}
 private:
     void generateVBO();
+    void generateVBOOld();
     glm::vec3 m_pos;
-    QVector<glm::vec3> m_points;
+
+    QVector<glm::vec3> m_points,m_prevDirs;
     QVector<float> m_thick;
-//    QVector<glm::mat4> m_rotations;
-    QVector<QVector<glm::mat4> > m_ctms;
-//    QVector<QPair<glm::vec3,float> > m_rotations;
-//    void rotate(QVector<glm::mat4> &rotations);
-//    void addrotation(glm::mat4 &rotation);
+    QVector<QPair<glm::vec3,glm::vec3> > m_vecs;
     GLuint m_buffer,m_bufferSize;
+//    QVector<PxVec3> m_vertices;
 };
 
 #endif // TREE_H

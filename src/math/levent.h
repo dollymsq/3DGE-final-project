@@ -7,12 +7,9 @@
 #include <glm/mat4x4.hpp>
 
 struct LEvent  {
-   glm::vec3 currentUp,currentLeft,currentDir,currentPos;
-//   glm::mat3 currentRot;
-   float currentThickness;
-//   QPair<glm::vec3,float> currentRotation;
-//    glm::mat4 currentRotation;
-   QVector<glm::mat4> currentCTMs;
+   glm::vec3 currentUp,currentLeft,currentDir,currentPos,prevDir;
+   float currentThickness,prevThickness;
+   QPair<glm::vec3,glm::vec3> currentVecs;
 };
 
 #endif // LEVENT_H

@@ -102,6 +102,7 @@ void World::init(float aspectRatio)
     initShaders();
 
     m_tree = Tree();
+    m_treeTexId = loadTexture("treebark.jpg");
     m_tree.generate(LParser::testTree());
 //    m_tree.generate("F(2)[\(45)&(45)F(2)]/(45)&(45)F(2)e");
 }
@@ -145,8 +146,12 @@ void World::draw(QPainter *m_painter)
 
     glEnable(GL_LIGHTING);
 
-    m_tree.drawLines();
+//    m_tree.drawLines();
+
+    glBindTexture(GL_TEXTURE_2D,m_treeTexId);
+    glEnable(GL_TEXTURE_2D);
     m_tree.draw();
+    glDisable(GL_TEXTURE_2D);
 
     glDisable(GL_LIGHTING);
 
@@ -505,4 +510,17 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
 //	}
     emit m_puzzles->puzzlesSolved("You have hit the hidden box");
 
+}
+
+GLuint World::loadTexture(const QString &path)  {
+    QImage img(path);
+    img = QGLWidget::convertToGLFormat(img);
+    GLuint id;
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height(),
+    0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+    return id;
 }

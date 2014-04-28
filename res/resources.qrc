@@ -7,5 +7,7 @@
         <file>meshes/cylinder_mesh.obj</file>
         <file>shaders/simple.frag</file>
         <file>shaders/simple.vert</file>
+        <file>meshes/cylinder_meshBetter.obj</file>
+        <file>textures/treebark.jpg</file>
     </qresource>
 </RCC>

@@ -89,6 +89,10 @@ private:
     void showSubtitles(QString &info, QPainter* m_painter);
     void showPermanentStat(QString &info, QPainter* m_painter);
 
+    GLuint loadTexture(const QString &path);
+
+    GLuint m_treeTexId;
+
     Obj sphereMesh;
     Obj cubeMesh;
 
