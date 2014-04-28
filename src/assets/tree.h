@@ -12,6 +12,8 @@
 #include "PxSimulationEventCallback.h"
 #include <iostream>
 
+using namespace physx;
+
 class Tree
 {
 public:
@@ -23,7 +25,8 @@ public:
     QVector<glm::vec3> getPoints() {std::cout << m_points.size() << "meow" << std::endl; return m_points;}
     QVector<float> getThickness() {return m_thick;}
     glm::vec3 getPosition() {return m_pos;}
-//    QVector<PxVec3> getVerts(){return m_vertices;}
+    QVector<PxVec3> getVerts(){return m_vertices;}
+    QVector<PxU32> getInds(){return m_inds;}
 private:
     void generateVBO();
     void generateVBOOld();
@@ -33,7 +36,8 @@ private:
     QVector<float> m_thick;
     QVector<QPair<glm::vec3,glm::vec3> > m_vecs;
     GLuint m_buffer,m_bufferSize;
-//    QVector<PxVec3> m_vertices;
+    QVector<PxVec3> m_vertices;
+    QVector<PxU32> m_inds;
 };
 
 #endif // TREE_H

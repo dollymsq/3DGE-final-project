@@ -242,12 +242,12 @@ void Tree::generateVBO()  {
             d = forwardPoints.at(secondInd);
             e = m_points.at(i+1) + (currentVecs.first*forwardThickness/2.0f);
 
-//            PxVec3 physA,physB,physC,physD,physE;
-//            physA = PxVec3(a.x,a.y,a.z);
-//            physB = PxVec3(b.x,b.y,b.z);
-//            physC = PxVec3(c.x,c.y,c.z);
-//            physD = PxVec3(d.x,d.y,d.z);
-//            physE = PxVec3(e.x,e.y,e.z);
+            PxVec3 physA,physB,physC,physD,physE;
+            physA = PxVec3(a.x,a.y,a.z);
+            physB = PxVec3(b.x,b.y,b.z);
+            physC = PxVec3(c.x,c.y,c.z);
+            physD = PxVec3(d.x,d.y,d.z);
+            physE = PxVec3(e.x,e.y,e.z);
 
             aTex = glm::vec2(((float)secondInd)/((float)SMOOTH_ITER),0.0f);
             bTex = glm::vec2(((float)j)/((float)SMOOTH_ITER),0.0f);
@@ -266,9 +266,22 @@ void Tree::generateVBO()  {
             VBOAdd += (bVBO + dVBO + cVBO);
             VBOAdd += (dVBO + eVBO + cVBO);
 
-//            m_vertices.append(physA);
-//            m_vertices.append(physD);
-//            m_vertices.append(physB);
+            m_vertices.append(physA);
+            m_vertices.append(physB);
+            m_vertices.append(physC);
+            m_vertices.append(physD);
+            m_vertices.append(physE);
+
+            int aInd,bInd,cInd,dInd,eInd;
+            aInd = m_vertices.size() - 5;
+            bInd = m_vertices.size() - 4;
+            cInd = m_vertices.size() - 3;
+            dInd = m_vertices.size() - 2;
+            eInd = m_vertices.size() - 1;
+
+            m_inds.append(aInd);m_inds.append(dInd);m_inds.append(bInd);
+            m_inds.append(bInd);m_inds.append(dInd);m_inds.append(cInd);
+            m_inds.append(dInd);m_inds.append(eInd);m_inds.append(cInd);
 
 //            m_vertices.append(physB);
 //            m_vertices.append(physD);

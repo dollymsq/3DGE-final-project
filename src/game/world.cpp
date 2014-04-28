@@ -89,6 +89,17 @@ void World::init(float aspectRatio)
 
     initPhysics(true);
 
+    m_cooking = PxCreateCooking(PX_PHYSICS_VERSION, m_physics->getFoundation(), PxCookingParams(PxTolerancesScale()));
+
+    if(m_cooking)  {
+        std::cout << "yay!" << std::endl;
+    }
+    else {
+        std::cout << "shit" << std::endl;
+    }
+
+    createTreeTriMesh(m_tree);
+
     // Setup default render states
     glClearColor(0.1f, 0.1f, 0.1f, 1);
     glEnable(GL_DEPTH_TEST);
@@ -160,7 +171,7 @@ void World::draw(QPainter *m_painter)
 
 //    glBindTexture(GL_TEXTURE_2D,m_treeTexId);
 //    glEnable(GL_TEXTURE_2D);
-    glColor3f(82.0f/255.0f,41.0f/255.0f,0.0f/255.0f);
+    glColor4f(82.0f/255.0f,41.0f/255.0f,0.0f/255.0f,1.0f);
     m_tree.draw();
 //    glDisable(GL_TEXTURE_2D);
 
@@ -252,6 +263,55 @@ PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal
     return body;
 }
 
+void World::createTreeTriMesh(Tree &t)  {
+    QVector<PxVec3> verts = t.getVerts();
+    QVector<PxU32> inds = t.getInds();
+    PxVec3* vertData = verts.data();
+    PxU32* indData = inds.data();
+
+    PxTriangleMeshDesc desc = PxTriangleMeshDesc();
+    desc.setToDefault();;
+    desc.points.count = verts.size();
+    desc.triangles.count = inds.size();
+
+    desc.points.stride = sizeof(PxVec3);
+    desc.points.data = vertData;
+
+    desc.triangles.stride = sizeof(PxU32)*3;
+    desc.triangles.data = indData;
+
+    PxDefaultMemoryOutputStream stream;
+//    PxToolkit::MemoryOutputStream strea;
+    if(m_cooking->cookTriangleMesh(desc,stream))
+    {
+        std::cout << "Mesh has been baked successfully" << std::endl;
+    }
+    else
+    {
+        std::cout << "Mesh failed baking." << std::endl;
+    }
+
+    PxTransform pose;
+    pose.p = PxVec3(0,0,0);
+    pose.q= PxQuat(0,PxVec3(0,0,0));
+
+    PxDefaultMemoryInputData istream(stream.getData(),stream.getSize());
+
+//    PxToolkit::MemoryInputData istream(stream.getData(),stream.getSize());
+    PxTriangleMesh *triangleMesh = m_physics->createTriangleMesh(istream);
+
+    PxRigidStatic* body = m_physics->createRigidStatic(pose);
+    PxTriangleMeshGeometry geom = PxTriangleMeshGeometry(triangleMesh,PxMeshScale());
+
+    PxShape *triangleMeshShape = body->createShape(geom,*m_material,pose);
+
+    body->attachShape(*triangleMeshShape);
+
+    m_scene->addActor(*body);
+
+    triangleMeshShape->release();
+}
+
 void World::createTreeActors(Tree &t)  {
     glm::mat4 CTM;
     QVector<glm::vec3> points = t.getPoints();
@@ -320,7 +380,7 @@ void World::initPhysics(bool interactive)
     createStack(PxTransform(PxVec3(-40, 0, -40.0f)), 5, 2.0f);
     createStack(PxTransform(PxVec3(-40, 0, 40.0f)), 5, 2.0f);
 
-    createTreeActors(m_tree);
+//    createTreeActors(m_tree);
 
 //    createBox(PxTransform(PxVec3(-60,  60,  -80.0f)), 30, 60, 2);
 //    createBox(PxTransform(PxVec3(-15,  15,  -80.0f)), 15, 15, 2);
@@ -374,7 +434,7 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
             glMultMatrixf((float*)&shapePose);
             if (actors[i] == m_redBlock)
                 glColor4f(0.9f, 0, 0, 1.0f);
-            else if (actors[i] == m_hole || actors[i]->getName() == "tree")
+            else if (actors[i] == m_hole)//|| actors[i]->getName() == "tree")
 //                glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
                 toRender = false;
             else

@@ -87,6 +87,7 @@ private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
     PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z);
     void createTreeActors(Tree &t);
+    void createTreeTriMesh(Tree &t);
     void initPhysics(bool interactive);
     void stepPhysics(bool interactive);
     void cleanupPhysics(bool interactive);
@@ -102,6 +103,8 @@ private:
 
     Obj sphereMesh;
     Obj cubeMesh;
+
+    PxCooking *m_cooking;
 
     PxRigidDynamic          *m_redBlock;
     PxRigidStatic           *m_hole;
