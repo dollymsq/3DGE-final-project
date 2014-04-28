@@ -36,11 +36,13 @@ struct FilterGroup
         eBALL   		= (1 << 0),
         eRED_BOX		= (1 << 1),
         eORD_BOX		= (1 << 2),
+        eHOLE           = (1 << 3),
+        eSTEPPING_BOX   = (1 << 4),
         //
     };
 };
 
-class World : public QObject, protected QOpenGLFunctions, public PxSimulationEventCallback
+class World : public QObject, protected QOpenGLFunctions, public PxSimulationEventCallback, public PxContactModifyCallback
 {
     Q_OBJECT
 
@@ -76,10 +78,13 @@ public:
     virtual void onSleep(PxActor** actors, PxU32 count) {}
     virtual void onTrigger(PxTriggerPair* pairs, PxU32 count) {}
 
+    virtual void onContactModify(PxContactModifyPair *const pairs, PxU32 count);
+
 
 
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
+    PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z);
     void initPhysics(bool interactive);
     void stepPhysics(bool interactive);
     void cleanupPhysics(bool interactive);
@@ -96,11 +101,11 @@ private:
     Obj sphereMesh;
     Obj cubeMesh;
 
-    PxRigidDynamic         *m_redBlock;
+    PxRigidDynamic          *m_redBlock;
+    PxRigidStatic           *m_hole;
+
     PxVec3                  m_redBlockPos;
     PxVec3                  m_redBlockOriPos;
-    bool m_redBlockPosInit;
-
 
     PxDefaultAllocator		m_allocator;
     PxDefaultErrorCallback	m_errorCallback;
@@ -111,7 +116,7 @@ private:
     PxDefaultCpuDispatcher*	m_dispatcher;
     PxScene*				m_scene;
 
-    PxControllerManager* m_manager;
+    PxControllerManager*    m_manager;
 
     PxMaterial*				m_material;
 
