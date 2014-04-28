@@ -21,9 +21,18 @@ PxFilterFlags WorldFilterShader(
     // trigger the contact callback for pairs (A,B) where
     // the filtermask of A contains the ID of B and vice versa.
 
+//    if((filterData0.word0 == FilterGroup::eBALL && filterData1.word0 == FilterGroup::eRED_BOX )
+//            || (filterData0.word0 == FilterGroup::eRED_BOX && filterData1.word0 == FilterGroup::eBALL ))
+//    {
+//        qDebug()<<"box box";
+//    }
     if((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
+    {
         pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
 
+        if(filterData0.word0 & FilterGroup::eHOLE || filterData0.word1 & FilterGroup::eHOLE)
+            pairFlags |= PxPairFlag::eMODIFY_CONTACTS;
+    }
 
     return PxFilterFlag::eDEFAULT;
 }
@@ -55,7 +64,6 @@ World::World() :
     m_connection(NULL),
     m_redBlock(NULL),
     m_stackZ(10.0f),
-    m_redBlockPosInit(false),
     m_puzzleSolved(false)
 {
     m_puzzles = new Puzzles();
@@ -183,9 +191,7 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
         dynamic->setAngularDamping(0.5f);
         dynamic->setLinearVelocity(velocity);
         m_scene->addActor(*dynamic);
-        setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eRED_BOX);
-        //for debugging
-//        setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eBALL);
+        setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eHOLE | FilterGroup::eRED_BOX);
 
         m_dynamicsMessage = "Number of Dynamics: " + QString::number(m_dyanmicsCount);
         return dynamic;
@@ -194,8 +200,6 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
 
 void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 {
-//    PxShape* shape = m_physics->createShape(PxBoxGeometry(halfExtent, halfExtent, halfExtent), *m_material);
-
     for(PxU32 i=0; i<size;i++)
     {
 	    for(PxU32 j=0;j<size-i;j++)
@@ -217,21 +221,27 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
                     if (!m_redBlock)
                     {
                         m_redBlock = body;
-
                         setupFiltering(body, FilterGroup::eRED_BOX, FilterGroup::eBALL);
 
                     }
                 }
 
-
                 shape->release();
-
 		    }
 	    }
-
     }
+}
 
-//    shape->release();
+PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z)
+{
+    PxShape* shape = m_physics->createShape(PxBoxGeometry(x, y, z), *m_material, true);
+
+    PxRigidStatic* body = m_physics->createRigidStatic(t);
+    body->attachShape(*shape);
+    m_scene->addActor(*body);
+
+    shape->release();
+    return body;
 }
 
 void World::initPhysics(bool interactive)
@@ -253,6 +263,7 @@ void World::initPhysics(bool interactive)
     sceneDesc.cpuDispatcher	= m_dispatcher;
     sceneDesc.filterShader	= WorldFilterShader;
     sceneDesc.simulationEventCallback	= this;
+    sceneDesc.contactModifyCallback = this;
     m_scene = m_physics->createScene(sceneDesc);
 
     m_material = m_physics->createMaterial(0.5f, 0.5f, 0.6f);
@@ -265,6 +276,12 @@ void World::initPhysics(bool interactive)
     createStack(PxTransform(PxVec3(-40, 0, -40.0f)), 5, 2.0f);
     createStack(PxTransform(PxVec3(-40, 0, 40.0f)), 5, 2.0f);
 
+    createBox(PxTransform(PxVec3(-60,  60,  -80.0f)), 30, 60, 2);
+    createBox(PxTransform(PxVec3(-15,  15,  -80.0f)), 15, 15, 2);
+    createBox(PxTransform(PxVec3(-15,  90,  -80.0f)), 15, 30, 2);
+    m_hole = createBox(PxTransform(PxVec3(-15,  45,  -80.0f)), 15, 15, 2);
+    setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
+    createBox(PxTransform(PxVec3(30,  60,  -80.0f)), 30, 60, 2);
 
 
     if(!interactive)
@@ -312,20 +329,9 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
             glMultMatrixf((float*)&shapePose);
 
             if (actors[i] == m_redBlock)
-            {
                 glColor4f(0.9f, 0, 0, 1.0f);
-//                m_redBlockPos = shapePose.getPosition();
-//                if (!m_redBlockPosInit) {
-//                    m_redBlockPosInit = true;
-//                    m_redBlockOriPos = m_redBlockPos;
-//                }
-//                if((m_redBlockOriPos - m_redBlockPos).magnitude() >=  1.5f && !m_puzzleSolved)
-//                {
-//                    emit m_puzzles->puzzlesSolved("You have found the hidden box");
-//                    m_puzzleSolved = true;
-//                    //m_puzzles->infoToPrint= "You have found the hidden box";
-//                }
-            }
+            else if (actors[i] == m_hole)
+                glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
             else
                 glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 
@@ -357,6 +363,9 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
 
 void World::renderGeometry(const PxGeometryHolder& h)
 {
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable( GL_BLEND );
+
     switch(h.getType())
     {
     case PxGeometryType::eBOX:
@@ -485,24 +494,38 @@ void World::enableRight(bool flag)
 
 void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs)
 {
-//	for(PxU32 i=0; i < nbPairs; i++)
-//	{
-//		const PxContactPair& cp = pairs[i];
+    for(PxU32 i=0; i < nbPairs; i++)
+    {
+        const PxContactPair& cp = pairs[i];
+        if(cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
+        {
+            if((pairHeader.actors[0] == m_hole) || (pairHeader.actors[1] == m_hole))
+            {
+//                PxActor* otherActor = (mSubmarineActor == pairHeader.actors[0]) ? pairHeader.actors[1] : pairHeader.actors[0];
+//                Seamine* mine =  reinterpret_cast<Seamine*>(otherActor->userData);
+//                // insert only once
+//                if(std::find(mMinesToExplode.begin(), mMinesToExplode.end(), mine) == mMinesToExplode.end())
+//                    mMinesToExplode.push_back(mine);
+//                break;
+                qDebug() << "hit the hole";
+                emit m_puzzles->puzzlesSolved("You have passed through the hole");
 
-//		if(cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
-//		{
-//			if((pairHeader.actors[0] == mSubmarineActor) || (pairHeader.actors[1] == mSubmarineActor))
-//			{
-//				PxActor* otherActor = (mSubmarineActor == pairHeader.actors[0]) ? pairHeader.actors[1] : pairHeader.actors[0];
-//				Seamine* mine =  reinterpret_cast<Seamine*>(otherActor->userData);
-//				// insert only once
-//				if(std::find(mMinesToExplode.begin(), mMinesToExplode.end(), mine) == mMinesToExplode.end())
-//					mMinesToExplode.push_back(mine);
+            }
+            else
+            {
+                emit m_puzzles->puzzlesSolved("You have hit the hidden box");
+                qDebug() << "hit the box";
 
-//				break;
-//			}
-//		}
-//	}
-    emit m_puzzles->puzzlesSolved("You have hit the hidden box");
+            }
+        }
+    }
+}
+
+void World::onContactModify(PxContactModifyPair *const pairs, PxU32 count)
+{
+    for(PxU32 i=0; i< count; i++)
+    {
+        pairs->contacts.ignore(i);
+    }
 
 }
