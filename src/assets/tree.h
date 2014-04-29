@@ -2,6 +2,7 @@
 #define TREE_H
 
 //#include "math/vector.h"
+#include "assets/renderable.h"
 #include <glm/common.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtx/transform.hpp>
@@ -14,12 +15,12 @@
 
 using namespace physx;
 
-class Tree
+class Tree : public Renderable
 {
 public:
     Tree(glm::vec3 pos = glm::vec3(0,0,0));
     virtual ~Tree();
-    void draw();
+    virtual void draw() const;
     void drawLines();
     void generate(QString L);
     QVector<glm::vec3> getPoints() {std::cout << m_points.size() << "meow" << std::endl; return m_points;}

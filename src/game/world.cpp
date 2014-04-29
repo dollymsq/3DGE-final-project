@@ -64,9 +64,12 @@ World::World() :
     m_connection(NULL),
     m_redBlock(NULL),
     m_stackZ(10.0f),
-    m_puzzleSolved(false)
+    m_puzzleSolved(false),
+    m_renderables(QHash<QString,Renderable*>())
 {
     m_puzzles = new Puzzles();
+    m_renderables["sphere"] = &sphereMesh;
+    m_renderables["cube"] = &cubeMesh;
 }
 
 World::~World()
@@ -91,12 +94,12 @@ void World::init(float aspectRatio)
 
     m_cooking = PxCreateCooking(PX_PHYSICS_VERSION, m_physics->getFoundation(), PxCookingParams(PxTolerancesScale()));
 
-    if(m_cooking)  {
-        std::cout << "yay!" << std::endl;
-    }
-    else {
-        std::cout << "shit" << std::endl;
-    }
+//    if(m_cooking)  {
+//        std::cout << "yay!" << std::endl;
+//    }
+//    else {
+//        std::cout << "shit" << std::endl;
+//    }
 
     createTreeTriMesh(m_tree);
 
@@ -167,14 +170,6 @@ void World::draw(QPainter *m_painter)
 
     glEnable(GL_LIGHTING);
 
-//    m_tree.drawLines();
-
-//    glBindTexture(GL_TEXTURE_2D,m_treeTexId);
-//    glEnable(GL_TEXTURE_2D);
-    glColor4f(82.0f/255.0f,41.0f/255.0f,0.0f/255.0f,1.0f);
-    m_tree.draw();
-//    glDisable(GL_TEXTURE_2D);
-
     glDisable(GL_LIGHTING);
 
     // Draw grid
@@ -209,6 +204,7 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
         PxRigidDynamic* dynamic = PxCreateDynamic(*m_physics, t, geometry, *m_material, 10.0f);
         dynamic->setAngularDamping(0.5f);
         dynamic->setLinearVelocity(velocity);
+        dynamic->setName("sphere");
         m_scene->addActor(*dynamic);
         setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eHOLE | FilterGroup::eRED_BOX);
 
@@ -235,6 +231,7 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 
                 body->attachShape(*shape);
 			    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
+                body->setName("cube");
                 m_scene->addActor(*body);
                 if (i == 2 && j == 1 && k == 1) {
                     if (!m_redBlock)
@@ -257,6 +254,7 @@ PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal
 
     PxRigidStatic* body = m_physics->createRigidStatic(t);
     body->attachShape(*shape);
+    body->setName("cube");
     m_scene->addActor(*body);
 
     shape->release();
@@ -281,7 +279,7 @@ void World::createTreeTriMesh(Tree &t)  {
     desc.triangles.data = indData;
 
     PxDefaultMemoryOutputStream stream;
-//    PxToolkit::MemoryOutputStream strea;
+//    PxToolkit::
     if(m_cooking->cookTriangleMesh(desc,stream))
     {
         std::cout << "Mesh has been baked successfully" << std::endl;
@@ -293,19 +291,29 @@ void World::createTreeTriMesh(Tree &t)  {
 
     PxTransform pose;
     pose.p = PxVec3(0,0,0);
-    pose.q= PxQuat(0,PxVec3(0,0,0));
+    pose.q= PxQuat(0,PxVec3(0,1,0));
+
+
+//    PxRigidStatic* body = m_physics->createRigidStatic(transform);
+//    body->attachShape(*cylinder);
+
+//    body->setName("tree");
+//    m_scene->addActor(*body);
 
     PxDefaultMemoryInputData istream(stream.getData(),stream.getSize());
-
-//    PxToolkit::MemoryInputData istream(stream.getData(),stream.getSize());
     PxTriangleMesh *triangleMesh = m_physics->createTriangleMesh(istream);
 
     PxRigidStatic* body = m_physics->createRigidStatic(pose);
     PxTriangleMeshGeometry geom = PxTriangleMeshGeometry(triangleMesh,PxMeshScale());
 
-    PxShape *triangleMeshShape = body->createShape(geom,*m_material,pose);
+//    PxShape *triangleMeshShape = body->createShape(geom,*m_material,pose);
+
+    PxShape *triangleMeshShape = m_physics->createShape(geom,*m_material,true);
 
     body->attachShape(*triangleMeshShape);
+
+    body->setName("tree");
+    m_renderables["tree"] = &m_tree;
 
     m_scene->addActor(*body);
 
@@ -380,14 +388,12 @@ void World::initPhysics(bool interactive)
     createStack(PxTransform(PxVec3(-40, 0, -40.0f)), 5, 2.0f);
     createStack(PxTransform(PxVec3(-40, 0, 40.0f)), 5, 2.0f);
 
-//    createTreeActors(m_tree);
-
-//    createBox(PxTransform(PxVec3(-60,  60,  -80.0f)), 30, 60, 2);
-//    createBox(PxTransform(PxVec3(-15,  15,  -80.0f)), 15, 15, 2);
-//    createBox(PxTransform(PxVec3(-15,  90,  -80.0f)), 15, 30, 2);
-//    m_hole = createBox(PxTransform(PxVec3(-15,  45,  -80.0f)), 15, 15, 2);
-//    setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
-//    createBox(PxTransform(PxVec3(30,  60,  -80.0f)), 30, 60, 2);
+    createBox(PxTransform(PxVec3(-60,  60,  -80.0f)), 30, 60, 2);
+    createBox(PxTransform(PxVec3(-15,  15,  -80.0f)), 15, 15, 2);
+    createBox(PxTransform(PxVec3(-15,  90,  -80.0f)), 15, 30, 2);
+    m_hole = createBox(PxTransform(PxVec3(-15,  45,  -80.0f)), 15, 15, 2);
+    setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
+    createBox(PxTransform(PxVec3(30,  60,  -80.0f)), 30, 60, 2);
 
     if(!interactive)
         createDynamic(PxTransform(PxVec3(0,40,100)), PxSphereGeometry(10), PxVec3(0,-50,-100));
@@ -417,9 +423,11 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
 {
 
     PxShape* shapes[MAX_NUM_ACTOR_SHAPES];
+//    std::cout << "number of actors: " << numActors << std::endl;
     for(PxU32 i=0;i<numActors;i++)
     {
         const PxU32 nbShapes = actors[i]->getNbShapes();
+
         PX_ASSERT(nbShapes <= MAX_NUM_ACTOR_SHAPES);
         actors[i]->getShapes(shapes, nbShapes);
         bool sleeping = actors[i]->isRigidDynamic() ? actors[i]->isRigidDynamic()->isSleeping() : false;
@@ -434,9 +442,10 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
             glMultMatrixf((float*)&shapePose);
             if (actors[i] == m_redBlock)
                 glColor4f(0.9f, 0, 0, 1.0f);
-            else if (actors[i] == m_hole)//|| actors[i]->getName() == "tree")
-//                glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
+            else if (actors[i] == m_hole || !m_renderables.contains(actors[i]->getName()))// || actors[i]->getName() == "tree")
                 toRender = false;
+            else if (actors[i]->getName() == "tree")
+                glColor4f(82.0f/255.0f,41.0f/255.0f,0.0f/255.0f,1.0f);
             else
                 glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 
@@ -445,11 +454,11 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
 //            else
 //                glColor4f(0.0f, 0.75f, 0.0f, 1.0f);
             if(toRender)
-                renderGeometry(h);
+                renderGeometry(h,m_renderables[actors[i]->getName()]);
             glPopMatrix();
 
             // notice this are really fake shadows
-            if(shadows)
+            if(shadows && toRender)
             {
                 const PxVec3 shadowDir(0.0f, -0.7071067f, -0.7071067f);
                 const PxReal shadowMat[]={ 1,0,0,0, -shadowDir.x/shadowDir.y,0,-shadowDir.z/shadowDir.y,0, 0,0,1,0, 0,0,0,1 };
@@ -458,7 +467,7 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                 glMultMatrixf((float*)&shapePose);
                 glDisable(GL_LIGHTING);
                 glColor4f(0.0f, 0.05f, 0.08f, 1);
-                renderGeometry(h);
+                renderGeometry(h,m_renderables[actors[i]->getName()]);
                 glEnable(GL_LIGHTING);
                 glPopMatrix();
             }
@@ -467,7 +476,7 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
 
 }
 
-void World::renderGeometry(const PxGeometryHolder& h)
+void World::renderGeometry(const PxGeometryHolder& h, Renderable *r)
 {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable( GL_BLEND );
@@ -479,7 +488,7 @@ void World::renderGeometry(const PxGeometryHolder& h)
             glScalef(h.box().halfExtents.x, h.box().halfExtents.y, h.box().halfExtents.z);
             glPushMatrix();
                 glScalef(2,2,2);
-                cubeMesh.draw();
+                r->draw();
             glPopMatrix();
         }
         break;
@@ -488,7 +497,7 @@ void World::renderGeometry(const PxGeometryHolder& h)
             float diam = h.sphere().radius * 2;
             glPushMatrix();
                 glScalef(diam, diam, diam);
-                sphereMesh.draw();
+                r->draw();
             glPopMatrix();
         }
         break;
@@ -499,6 +508,7 @@ void World::renderGeometry(const PxGeometryHolder& h)
     case PxGeometryType::ePLANE:
     case PxGeometryType::eTRIANGLEMESH:
         // TODO: implement
+        r->draw();
         break;
     case PxGeometryType::eINVALID:
         qCritical("invalid actor in renderGeometry");

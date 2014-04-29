@@ -93,7 +93,7 @@ private:
     void cleanupPhysics(bool interactive);
 
     void renderActors(PxRigidActor** actors, const PxU32 numActors, bool shadows);
-    void renderGeometry(const PxGeometryHolder& h);
+    void renderGeometry(const PxGeometryHolder& h, Renderable *r);
     void showSubtitles(QString &info, QPainter* m_painter);
     void showPermanentStat(QString &info, QPainter* m_painter);
 
@@ -103,6 +103,9 @@ private:
 
     Obj sphereMesh;
     Obj cubeMesh;
+//    Tree triangleMesh;
+
+    QHash<QString,Renderable*> m_renderables;
 
     PxCooking *m_cooking;
 
@@ -126,7 +129,6 @@ private:
     PxMaterial*				m_material;
 
     PxVisualDebuggerConnection* m_connection;
-
 
     PxReal m_stackZ;
 

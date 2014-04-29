@@ -1,28 +1,19 @@
 #ifndef OBJ_H
 #define OBJ_H
 
-
-#include "graphics/opengl.h"
-#include "assets/renderable.h"
-
-#include <glm/vec3.hpp>
-#include <glm/vec2.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <glm/common.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/ext.hpp>
 
+#include "math/vector.h"
 #include <QVector>
-#include <QFile>
-#include <QTextStream>
 
 struct Vertex;
 
 // A simple parser that reads and writes Wavefront .obj files
-class Obj : public Renderable
+class OBJ
 {
 public:
-    Obj(const QString &path);
-
     struct Index
     {
         int vertex;
@@ -44,28 +35,17 @@ public:
         Triangle(const Index &a, const Index &b, const Index &c) : a(a), b(b), c(c) {}
     };
 
-
-    struct MeshBuffer {
-        glm::vec3 position;
-        glm::vec3 normal;
-        glm::vec2 texcoord;
-    };
-
-    GLuint m_vao;
-    GLuint m_buffer;
-
-    QVector<glm::vec3> vertices;
-    QVector<glm::vec2> coords;
-    QVector<glm::vec3> normals;
+    QVector<Vector3> vertices;
+    QVector<Vector2> coords;
+    QVector<Vector3> normals;
     QVector<Triangle> triangles;
 
-    virtual void draw() const;
+    void draw() const;
     bool read(const QString &path);
     bool write(const QString &path) const;
     QVector<float> transform(const glm::mat4 &transform);
     glm::vec3 transformPoint(const glm::vec4 &point, const glm::mat4 &transform);
 
-    void vbo();
 private:
     Index getIndex(const QString &str) const;
     void drawIndex(const Index &index) const;

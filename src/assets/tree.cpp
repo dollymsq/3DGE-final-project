@@ -40,7 +40,7 @@ void Tree::drawLines()  {
     glPopMatrix();
 }
 
-void Tree::draw()  {
+void Tree::draw() const {
     gl->glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
     gl->glEnableClientState(GL_VERTEX_ARRAY);
     gl->glEnableClientState(GL_TEXTURE_COORD_ARRAY);
