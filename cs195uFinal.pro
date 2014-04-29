@@ -154,7 +154,6 @@ INCLUDEPATH += src
 DEPENDPATH += $$INCLUDEPATH
 
 SOURCES += \
-    src/game/platworld.cpp \
     src/game/main.cpp \
     src/assets/obj.cpp \
     src/window/openglwindow.cpp \
@@ -167,7 +166,6 @@ SOURCES += \
     src/math/lparser.cpp
 
 HEADERS += \
-    src/game/platworld.h \
     src/game/player.h \
     src/game/vertex.h \
     src/math/vector.h \

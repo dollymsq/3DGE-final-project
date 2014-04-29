@@ -161,7 +161,8 @@ void World::draw(QPainter *m_painter)
     glEnable(GL_DEPTH_TEST);
 
 
-    glColor4f(1.0f, 0.1f, 0.1f, 1.0f);
+//    glColor4f(1.0f, 0.1f, 0.1f, 1.0f);
+    glEnable(GL_LIGHTING);
 
     PxScene* scene;
     PxGetPhysics().getScenes(&scene,1);
@@ -173,20 +174,19 @@ void World::draw(QPainter *m_painter)
         renderActors(&actors[0], (PxU32)actors.size(), true);
     }
 
-    glEnable(GL_LIGHTING);
 
     glDisable(GL_LIGHTING);
 
-    // Draw grid
-    glColor4f(0.5f, 0.5f, 0.5f, 0.25f);
-    glBegin(GL_LINES);
-    for (int s = 200, i = -s; i <= s; i += 10) {
-        glVertex3f(i /2.0f,  -0.0f, -s /2.0f);
-        glVertex3f(i /2.0f,  -0.0f, +s /2.0f);
-        glVertex3f(-s /2.0f, -0.0f, i /2.0f);
-        glVertex3f(+s /2.0f, -0.0f, i /2.0f);
-    }
-    glEnd();
+//    // Draw grid
+//    glColor4f(0.5f, 0.5f, 0.5f, 0.25f);
+//    glBegin(GL_LINES);
+//    for (int s = 200, i = -s; i <= s; i += 10) {
+//        glVertex3f(i /2.0f,  -0.0f, -s /2.0f);
+//        glVertex3f(i /2.0f,  -0.0f, +s /2.0f);
+//        glVertex3f(-s /2.0f, -0.0f, i /2.0f);
+//        glVertex3f(+s /2.0f, -0.0f, i /2.0f);
+//    }
+//    glEnd();
 
     glDisable(GL_DEPTH_TEST);
 
@@ -431,7 +431,7 @@ void World::cleanupPhysics(bool interactive)
 
 void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shadows)
 {
-    glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
+//    glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 
     PxShape* shapes[MAX_NUM_ACTOR_SHAPES];
 //    std::cout << "number of actors: " << numActors << std::endl;
@@ -455,15 +455,11 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                 glColor4f(0.9f, 0, 0, 1.0f);
             else if (!m_renderables.contains(actors[i]->getName()))// actors[i]->getName() == "transparent" ||
                 toRender = false;
-            else if (actors[i]->getName() == "tree")
-                glColor4f(82.0f/255.0f,41.0f/255.0f,0.0f/255.0f,1.0f);
             else
-                glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
-
+                glColor4f(0.8f, 0.8f, 0.8f, 1.0f);
 //            if(sleeping)
 //                glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 //            else
-//                glColor4f(0.0f, 0.75f, 0.0f, 1.0f);
             if(toRender)
                 renderGeometry(h,m_renderables[actors[i]->getName()]);
             glPopMatrix();

@@ -27,7 +27,3 @@ void Puzzles::OnePuzzleSolved(QString info)
 }
 
 
-
-
-
-
