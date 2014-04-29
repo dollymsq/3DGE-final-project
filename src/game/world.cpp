@@ -65,7 +65,7 @@ World::World() :
     m_redBlock(NULL),
     m_stackZ(10.0f),
     m_puzzleSolved(false),
-    m_renderables(QHash<QString,Renderable*>())
+    m_renderables(QHash<const char*,Renderable*>())
 {
     m_puzzles = new Puzzles();
     m_renderables["sphere"] = &sphereMesh;
@@ -101,7 +101,11 @@ void World::init(float aspectRatio)
 //        std::cout << "shit" << std::endl;
 //    }
 
-    createTreeTriMesh(m_tree);
+//    createTreeTriMesh(m_tree);
+    PxTransform pose;
+    pose.p = PxVec3(0,0,0);
+    pose.q= PxQuat(0,PxVec3(0,1,0));
+    createTriMesh(&m_tree,QString("tree"),pose);
 
     // Setup default render states
     glClearColor(0.1f, 0.1f, 0.1f, 1);
@@ -263,14 +267,26 @@ PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal
     return body;
 }
 
-void World::createTreeTriMesh(Tree &t)  {
-    QVector<PxVec3> verts = t.getVerts();
-    QVector<PxU32> inds = t.getInds();
+PxRigidStatic* World::createTriMesh(Renderable *r,QString name,const PxTransform &t,bool isTransparent)  {
+    QVector<PxVec3> verts = r->getVerts();
+    QVector<PxU32> inds = r->getInds();
+//    QVector<glm::vec3> glmVerts = o.vertices;
+//    for(int i = 0; i < glmVerts.size(); i++)  {
+//        glm::vec3 currentVec = glmVerts[i];
+//        verts.append(PxVec3(currentVec.x,currentVec.y,currentVec.z));
+//    }
+//    QVector<Obj::Triangle> objInds = o.triangles;
+//    for(int i = 0; i < objInds.size(); i++)  {
+//        inds.append(objInds[i].a.vertex);
+//        inds.append(objInds[i].b.vertex);
+//        inds.append(objInds[i].c.vertex);
+//    }
+
     PxVec3* vertData = verts.data();
     PxU32* indData = inds.data();
 
     PxTriangleMeshDesc desc = PxTriangleMeshDesc();
-    desc.setToDefault();;
+    desc.setToDefault();
     desc.points.count = verts.size();
     desc.triangles.count = inds.size();
 
@@ -281,7 +297,7 @@ void World::createTreeTriMesh(Tree &t)  {
     desc.triangles.data = indData;
 
     PxDefaultMemoryOutputStream stream;
-//    PxToolkit::
+
     if(m_cooking->cookTriangleMesh(desc,stream))
     {
         std::cout << "Mesh has been baked successfully" << std::endl;
@@ -291,35 +307,26 @@ void World::createTreeTriMesh(Tree &t)  {
         std::cout << "Mesh failed baking." << std::endl;
     }
 
-    PxTransform pose;
-    pose.p = PxVec3(0,0,0);
-    pose.q= PxQuat(0,PxVec3(0,1,0));
-
-
-//    PxRigidStatic* body = m_physics->createRigidStatic(transform);
-//    body->attachShape(*cylinder);
-
-//    body->setName("tree");
-//    m_scene->addActor(*body);
-
     PxDefaultMemoryInputData istream(stream.getData(),stream.getSize());
     PxTriangleMesh *triangleMesh = m_physics->createTriangleMesh(istream);
 
-    PxRigidStatic* body = m_physics->createRigidStatic(pose);
+    PxRigidStatic* body = m_physics->createRigidStatic(t);
     PxTriangleMeshGeometry geom = PxTriangleMeshGeometry(triangleMesh,PxMeshScale());
-
-//    PxShape *triangleMeshShape = body->createShape(geom,*m_material,pose);
 
     PxShape *triangleMeshShape = m_physics->createShape(geom,*m_material,true);
 
     body->attachShape(*triangleMeshShape);
 
-    body->setName("tree");
-    m_renderables["tree"] = &m_tree;
-
+    body->setName(name.toStdString().c_str());
+    printf("name is: %s", body->getName());
+    if(!isTransparent)
+        m_renderables[body->getName()] = r;
+    std::cout << "contains? " << m_renderables.contains(body->getName()) << std::endl;
     m_scene->addActor(*body);
 
     triangleMeshShape->release();
+
+    return body;
 }
 
 void World::createTreeActors(Tree &t)  {
@@ -423,6 +430,7 @@ void World::cleanupPhysics(bool interactive)
 
 void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shadows)
 {
+    glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 
     PxShape* shapes[MAX_NUM_ACTOR_SHAPES];
 //    std::cout << "number of actors: " << numActors << std::endl;

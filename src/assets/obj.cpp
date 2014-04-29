@@ -197,3 +197,22 @@ void Obj::drawIndex(const Index &index) const
     if (index.normal >= 0 && index.normal < normals.count()) glNormal3fv(glm::value_ptr(normals[index.normal]));
     if (index.vertex >= 0 && index.vertex < vertices.count()) glVertex3fv(glm::value_ptr(vertices[index.vertex]));
 }
+
+QVector<PxVec3> Obj::getVerts()  {
+    QVector<PxVec3> verts;
+    for(int i = 0; i < vertices.size(); i++)  {
+        glm::vec3 currentVec = vertices[i];
+        verts.append(PxVec3(currentVec.x,currentVec.y,currentVec.z));
+    }
+    return verts;
+}
+
+QVector<PxU32> Obj::getInds()  {
+    QVector<PxU32> inds;
+    for(int i = 0; i < triangles.size(); i++)  {
+        inds.append(triangles[i].a.vertex);
+        inds.append(triangles[i].b.vertex);
+        inds.append(triangles[i].c.vertex);
+    }
+    return inds;
+}

@@ -5,6 +5,9 @@
 #include "graphics/opengl.h"
 #include "assets/renderable.h"
 
+#include <PxPhysicsAPI.h>
+#include "PxSimulationEventCallback.h"
+
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -14,6 +17,8 @@
 #include <QVector>
 #include <QFile>
 #include <QTextStream>
+
+using namespace physx;
 
 struct Vertex;
 
@@ -60,6 +65,8 @@ public:
     QVector<Triangle> triangles;
 
     virtual void draw() const;
+    virtual QVector<PxVec3> getVerts();
+    virtual QVector<PxU32> getInds();
     bool read(const QString &path);
     bool write(const QString &path) const;
     QVector<float> transform(const glm::mat4 &transform);
