@@ -15,6 +15,7 @@ public:
     static QPair<Command,float> parseString(QString L,int &pointer);
     static QString rewrite(QHash<QChar,QVector<QPair<QString,float> > > *rules, QString input, int steps);
     static QString testTree();
+    static QString testTreeEnd();
     static QString smallTest();
 };
 

@@ -90,6 +90,7 @@ void World::init(float aspectRatio)
 //    m_treeTexId = loadTexture("treebark.jpg");
     m_tree.generate(LParser::testTree());
 
+
     initPhysics(true);
 
     m_cooking = PxCreateCooking(PX_PHYSICS_VERSION, m_physics->getFoundation(), PxCookingParams(PxTolerancesScale()));
