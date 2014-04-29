@@ -248,13 +248,15 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
     }
 }
 
-PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z)
+PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent)
 {
     PxShape* shape = m_physics->createShape(PxBoxGeometry(x, y, z), *m_material, true);
 
     PxRigidStatic* body = m_physics->createRigidStatic(t);
     body->attachShape(*shape);
     body->setName("cube");
+    if(isTransparent)
+        body->setName("transparent");
     m_scene->addActor(*body);
 
     shape->release();
@@ -391,7 +393,7 @@ void World::initPhysics(bool interactive)
     createBox(PxTransform(PxVec3(-60,  60,  -80.0f)), 30, 60, 2);
     createBox(PxTransform(PxVec3(-15,  15,  -80.0f)), 15, 15, 2);
     createBox(PxTransform(PxVec3(-15,  90,  -80.0f)), 15, 30, 2);
-    m_hole = createBox(PxTransform(PxVec3(-15,  45,  -80.0f)), 15, 15, 2);
+    m_hole = createBox(PxTransform(PxVec3(-15,  45,  -80.0f)), 15, 15, 2,true);
     setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
     createBox(PxTransform(PxVec3(30,  60,  -80.0f)), 30, 60, 2);
 
@@ -442,7 +444,7 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
             glMultMatrixf((float*)&shapePose);
             if (actors[i] == m_redBlock)
                 glColor4f(0.9f, 0, 0, 1.0f);
-            else if (actors[i] == m_hole || !m_renderables.contains(actors[i]->getName()))// || actors[i]->getName() == "tree")
+            else if (!m_renderables.contains(actors[i]->getName()))// actors[i]->getName() == "transparent" ||
                 toRender = false;
             else if (actors[i]->getName() == "tree")
                 glColor4f(82.0f/255.0f,41.0f/255.0f,0.0f/255.0f,1.0f);

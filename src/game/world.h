@@ -85,7 +85,7 @@ public:
 
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
-    PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z);
+    PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false);
     void createTreeActors(Tree &t);
     void createTreeTriMesh(Tree &t);
     void initPhysics(bool interactive);
