@@ -65,6 +65,7 @@ World::World() :
     m_redBlock(NULL),
     m_stackZ(10.0f),
     m_puzzleSolved(false),
+    contactFlag(0),
     m_renderables(QHash<const char*,Renderable*>())
 {
     m_puzzles = new Puzzles();
@@ -268,6 +269,23 @@ PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal
     return body;
 }
 
+PxRigidDynamic* World::createDynamicBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent)
+{
+    PxShape* shape = m_physics->createShape(PxBoxGeometry(x, y, z), *m_material, true);
+
+    PxRigidDynamic* body = m_physics->createRigidDynamic(t);
+    body->attachShape(*shape);
+    body->setName("cube");
+    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
+    if(isTransparent)
+        body->setName("transparent");
+
+    m_scene->addActor(*body);
+
+    shape->release();
+    return body;
+}
+
 PxRigidStatic* World::createTriMesh(Renderable *r,QString name,const PxTransform &t,PxMaterial *m_material,bool isTransparent)  {
     QVector<PxVec3> verts = r->getVerts();
     QVector<PxU32> inds = r->getInds();
@@ -411,6 +429,11 @@ void World::initPhysics(bool interactive)
     m_steppingbox = createBox(PxTransform(PxVec3(-20,  2,  -10.0f)), 10, 2, 10);
     setupFiltering(m_steppingbox, FilterGroup::eSTEPPING_BOX, FilterGroup::eBALL);
 
+    //create domino
+    m_domino = createDynamicBox(PxTransform(PxVec3(-15,  30,  -120.0f)), 10, 30, 2);
+    setupFiltering(m_domino, FilterGroup::eGROUND, FilterGroup::eBALL);
+    createDynamicBox(PxTransform(PxVec3(-15,  40,  -140.0f)), 10, 40, 2);
+    createDynamicBox(PxTransform(PxVec3(-15,  50,  -160.0f)), 10, 50, 2);
 
     if(!interactive)
         createDynamic(PxTransform(PxVec3(0,40,100)), PxSphereGeometry(10), PxVec3(0,-50,-100));
@@ -645,14 +668,26 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
                     emit m_puzzles->puzzlesSolved("You have passed through the hole");
 
             }
+            else if((pairHeader.actors[0] == m_domino) || (pairHeader.actors[1] == m_domino))
+            {
+                if(contactFlag & (FilterGroup::eSTEPPING_BOX | FilterGroup::eHOLE ))
+                    emit m_puzzles->puzzlesSolved("You have finished this level");
+
+            }
             else if((pairHeader.actors[0] == groundPlane) || (pairHeader.actors[1] == groundPlane))//the ground
-                contactFlag = FilterGroup::eGROUND ;
+            {
+                PxActor* otherActor = (m_steppingbox == pairHeader.actors[0]) ? pairHeader.actors[1] : pairHeader.actors[0];
+                if(otherActor == currentBall)
+                    contactFlag = FilterGroup::eGROUND ;
+            }
             else if((pairHeader.actors[0] == m_steppingbox) || (pairHeader.actors[1] == m_steppingbox))//for the stepping box
+            {
                 contactFlag = FilterGroup::eSTEPPING_BOX;
+                currentBall = (m_steppingbox == pairHeader.actors[0]) ? pairHeader.actors[1] : pairHeader.actors[0];
+            }
             else
             {
                 emit m_puzzles->puzzlesSolved("You have hit the hidden box");
-                contactFlag = FilterGroup::eRED_BOX;
             }
         }
     }
@@ -664,7 +699,6 @@ void World::onContactModify(PxContactModifyPair *const pairs, PxU32 count)
     {
         pairs->contacts.ignore(i);
     }
-
 }
 
 GLuint World::loadTexture(const QString &path)  {
