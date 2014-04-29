@@ -165,6 +165,39 @@ QString LParser::testTree()  {
 
 }
 
+QString LParser::testTreeEnd()  {
+    int steps = 6;
+    QString input = "!(1)F(8)A()e";
+    QHash<QChar,QVector<QPair<QString,float> > > *rules = new QHash<QChar,QVector<QPair<QString,float> > >();
+    QVector<QPair<QString, float> > firstInsert;
+    QPair<QString,float> firstInsertPair;
+    firstInsertPair.first = "!(x+2)";
+    firstInsertPair.second = 1.0f;
+    firstInsert.append(firstInsertPair);
+    rules->insert('!',firstInsert);
+
+    QVector<QPair<QString, float> > secondInsert;
+    QPair<QString,float> secondInsertPairOne, secondInsertPairTwo;
+    secondInsertPairOne.second = 1;
+    secondInsertPairOne.first = "/(137)[+(20)!(1)F(6)A()]-(20)!(1)F(6)A()";
+//    secondInsertPairTwo.second = .5;
+//    secondInsertPairTwo.first = "/(137)-(20)!(1)F(6)A()";
+    secondInsert.append(secondInsertPairOne);
+//    secondInsert.append(secondInsertPairTwo);
+
+    rules->insert('A',secondInsert);
+
+    QString rewritten = LParser::rewrite(rules,input,steps);
+
+    delete rules;
+
+//    std::cout << rewritten.toStdString() << std::endl;
+//    std::cout << std::endl;
+
+    return rewritten;
+
+}
+
 QString LParser::smallTest()  {
     QString test = "[f(2)!(5)/(45)&(90)F(3)]!(10)F(2)e";
     return test;
