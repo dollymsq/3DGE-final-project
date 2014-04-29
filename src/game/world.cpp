@@ -105,7 +105,7 @@ void World::init(float aspectRatio)
     PxTransform pose;
     pose.p = PxVec3(0,0,0);
     pose.q= PxQuat(0,PxVec3(0,1,0));
-    createTriMesh(&m_tree,QString("tree"),pose);
+    createTriMesh(&m_tree,QString("tree"),pose,m_material);
 
     // Setup default render states
     glClearColor(0.1f, 0.1f, 0.1f, 1);
@@ -267,7 +267,7 @@ PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal
     return body;
 }
 
-PxRigidStatic* World::createTriMesh(Renderable *r,QString name,const PxTransform &t,bool isTransparent)  {
+PxRigidStatic* World::createTriMesh(Renderable *r,QString name,const PxTransform &t,PxMaterial *m_material,bool isTransparent)  {
     QVector<PxVec3> verts = r->getVerts();
     QVector<PxU32> inds = r->getInds();
 //    QVector<glm::vec3> glmVerts = o.vertices;
