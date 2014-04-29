@@ -183,7 +183,8 @@ HEADERS += \
     src/assets/tree.h \
     src/math/common.h \
     src/math/levent.h \
-    src/math/lcommand.h
+    src/math/lcommand.h \
+    src/assets/renderable.h
 
 RESOURCES += \
     $${RES}/resources.qrc
