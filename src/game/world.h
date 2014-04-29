@@ -86,7 +86,7 @@ public:
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
     PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false);
-    PxRigidStatic *createTriMesh(Renderable *r,QString name,const PxTransform &t,bool isTransparent = false);
+    PxRigidStatic *createTriMesh(Renderable *r,QString name,const PxTransform &t,PxMaterial *m_material,bool isTransparent = false);
     void createTreeActors(Tree &t);
     void initPhysics(bool interactive);
     void stepPhysics(bool interactive);
