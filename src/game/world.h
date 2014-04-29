@@ -39,6 +39,8 @@ struct FilterGroup
         eORD_BOX		= (1 << 2),
         eHOLE           = (1 << 3),
         eSTEPPING_BOX   = (1 << 4),
+        eGROUND         = (1 << 5),
+
         //
     };
 };
@@ -105,12 +107,17 @@ private:
     Obj cubeMesh;
 //    Tree triangleMesh;
 
+    PxU32 contactFlag;//to mark for the last contact actor
+
     QHash<const char*,Renderable*> m_renderables;
 
     PxCooking *m_cooking;
 
     PxRigidDynamic          *m_redBlock;
     PxRigidStatic           *m_hole;
+    PxRigidStatic           *groundPlane;
+    PxRigidStatic           *m_steppingbox;
+
 
     PxVec3                  m_redBlockPos;
     PxVec3                  m_redBlockOriPos;

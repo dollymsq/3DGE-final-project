@@ -30,7 +30,7 @@ PxFilterFlags WorldFilterShader(
     {
         pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
 
-        if(filterData0.word0 & FilterGroup::eHOLE || filterData0.word1 & FilterGroup::eHOLE)
+        if(filterData0.word0 & FilterGroup::eHOLE || filterData1.word0 & FilterGroup::eHOLE)
             pairFlags |= PxPairFlag::eMODIFY_CONTACTS;
     }
 
@@ -210,7 +210,7 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
         dynamic->setLinearVelocity(velocity);
         dynamic->setName("sphere");
         m_scene->addActor(*dynamic);
-        setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eHOLE | FilterGroup::eRED_BOX);
+        setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eHOLE | FilterGroup::eRED_BOX | FilterGroup::eGROUND | FilterGroup::eSTEPPING_BOX);
 
         m_dynamicsMessage = "Number of Dynamics: " + QString::number(m_dyanmicsCount);
         return dynamic;
@@ -389,20 +389,27 @@ void World::initPhysics(bool interactive)
 
     m_material = m_physics->createMaterial(0.5f, 0.5f, 0.6f);
 
-    PxRigidStatic* groundPlane = PxCreatePlane(*m_physics, PxPlane(0,1,0,0), *m_material);
+    groundPlane = PxCreatePlane(*m_physics, PxPlane(0,1,0,0), *m_material);
     m_scene->addActor(*groundPlane);
+    setupFiltering(groundPlane, FilterGroup::eGROUND, FilterGroup::eBALL);
 
     createStack(PxTransform(PxVec3(0,  0,  -40.0f)), 5, 2.0f);
     createStack(PxTransform(PxVec3(0,  0,  40.0f)), 5, 2.0f);
     createStack(PxTransform(PxVec3(-40, 0, -40.0f)), 5, 2.0f);
     createStack(PxTransform(PxVec3(-40, 0, 40.0f)), 5, 2.0f);
 
+    //the wall and hole
     createBox(PxTransform(PxVec3(-60,  60,  -80.0f)), 30, 60, 2);
     createBox(PxTransform(PxVec3(-15,  15,  -80.0f)), 15, 15, 2);
     createBox(PxTransform(PxVec3(-15,  90,  -80.0f)), 15, 30, 2);
-    m_hole = createBox(PxTransform(PxVec3(-15,  45,  -80.0f)), 15, 15, 2,true);
+    m_hole = createBox(PxTransform(PxVec3(-15,  45,  -80.0f)), 10, 10, 2,true); // make the hole smaller
     setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
     createBox(PxTransform(PxVec3(30,  60,  -80.0f)), 30, 60, 2);
+
+    //the stepping box
+    m_steppingbox = createBox(PxTransform(PxVec3(-20,  2,  -10.0f)), 10, 2, 10);
+    setupFiltering(m_steppingbox, FilterGroup::eSTEPPING_BOX, FilterGroup::eBALL);
+
 
     if(!interactive)
         createDynamic(PxTransform(PxVec3(0,40,100)), PxSphereGeometry(10), PxVec3(0,-50,-100));
@@ -454,6 +461,7 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                 glColor4f(0.9f, 0, 0, 1.0f);
             else if (!m_renderables.contains(actors[i]->getName()))// actors[i]->getName() == "transparent" ||
                 toRender = false;
+
             else
                 glColor4f(0.8f, 0.8f, 0.8f, 1.0f);
 //            if(sleeping)
@@ -629,15 +637,21 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
 //                if(std::find(mMinesToExplode.begin(), mMinesToExplode.end(), mine) == mMinesToExplode.end())
 //                    mMinesToExplode.push_back(mine);
 //                break;
-                qDebug() << "hit the hole";
-                emit m_puzzles->puzzlesSolved("You have passed through the hole");
+                contactFlag |= FilterGroup::eHOLE ;
+                if(contactFlag & FilterGroup::eSTEPPING_BOX)
+                    emit m_puzzles->puzzlesSolved("You have used the stepping box to pass through the hole");
+                else
+                    emit m_puzzles->puzzlesSolved("You have passed through the hole");
 
             }
+            else if((pairHeader.actors[0] == groundPlane) || (pairHeader.actors[1] == groundPlane))//the ground
+                contactFlag = FilterGroup::eGROUND ;
+            else if((pairHeader.actors[0] == m_steppingbox) || (pairHeader.actors[1] == m_steppingbox))//for the stepping box
+                contactFlag = FilterGroup::eSTEPPING_BOX;
             else
             {
                 emit m_puzzles->puzzlesSolved("You have hit the hidden box");
-                qDebug() << "hit the box";
-
+                contactFlag = FilterGroup::eRED_BOX;
             }
         }
     }
