@@ -419,7 +419,7 @@ void World::initPhysics(bool interactive)
 
 
     PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
-    sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
+    sceneDesc.gravity = PxVec3(0.0f, -10.81f, 0.0f);
     m_dispatcher = PxDefaultCpuDispatcherCreate(2);
     sceneDesc.cpuDispatcher	= m_dispatcher;
     sceneDesc.filterShader	= WorldFilterShader;
@@ -580,7 +580,13 @@ void World::setUpRoomTwo()  {
 void World::stepPhysics(bool interactive)
 {
     PX_UNUSED(interactive)
-    m_scene->simulate(1.0f/20.0f);
+//    m_scene->simulate(1.0f/40.0f);
+//    m_scene->simulate(1.0f/40.0f);
+//    m_scene->simulate(1.0f/25.0f);
+//    m_scene->fetchResults(true);
+    m_scene->simulate(1.0f/40.0f);
+    m_scene->fetchResults(true);
+    m_scene->simulate(1.0f/40.0f);
     m_scene->fetchResults(true);
 }
 
