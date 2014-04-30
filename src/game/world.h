@@ -16,6 +16,7 @@
 #include "scene/camera.h"
 #include "assets/tree.h"
 #include "math/lparser.h"
+#include "math/calc.h"
 
 #include <iostream>
 #include "puzzles.h"
@@ -124,7 +125,7 @@ private:
     QString m_levelinfo;
 
     void setUpRoomOne();
-
+    void setUpRoomTwo();
     GLuint loadTexture(const QString &path);
 
     GLuint m_treeTexId;

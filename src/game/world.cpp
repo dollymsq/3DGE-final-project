@@ -66,6 +66,7 @@ World::World() :
     contactFlag(0)
 {
     m_puzzles = new Puzzles();
+    m_puzzles->level = 0;
 
     Vector4 grey    = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
     Vector4 red     = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -442,7 +443,6 @@ void World::setUpRoomOne()  {
     createBox(PxTransform(PxVec3(-82.5,  60,  -100.0f)), 67.5, 60, 2);
     createBox(PxTransform(PxVec3(0,  15,  -100.0f)), 15, 15, 2);
     createBox(PxTransform(PxVec3(0,  90,  -100.0f)), 15, 30, 2);
-//    createBox(PxTransform(PxVec3()))
     m_hole = createBox(PxTransform(PxVec3(0,  45,  -100.0f)), 15, 15, 1.0f,true);
     setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
     createBox(PxTransform(PxVec3(82.5,  60,  -100.0f)), 67.5, 60, 2);
@@ -481,6 +481,11 @@ void World::setUpRoomOne()  {
     createDynamicBox(PxTransform(PxVec3(0,  50,  -200.0f)), 10, 50, 2, false, 5);
     createDynamicBox(PxTransform(PxVec3(0,  50,  -220.0f)), 10, 50, 2, false, 6);
     createDynamicBox(PxTransform(PxVec3(0,  50,  -240.0f)), 10, 50, 2, false, 7);
+
+    //create spheres
+    for(int i = 0; i < 10; i++)  {
+        createDynamic(PxTransform(Calc::random(-50,50),2,Calc::random(-50,50)),PxSphereGeometry(3.0f));
+    }
 
     m_controllerManager = PxCreateControllerManager(*m_scene);
 
@@ -538,6 +543,32 @@ void World::setUpRoomOne()  {
     setupFiltering(m_steppingbox, FilterGroup::eSTEPPING_BOX, FilterGroup::eBALL);
 }
 
+void World::setUpRoomTwo()  {
+//                        m_camera.m_position = glm::vec3(-15.0,  80.0,  -120.0);
+
+    //path made from a series of boxes
+    createBox(PxTransform(PxVec3(-1,28,-117),PxQuat(0,PxVec3(1,0,0))),18,2,15);
+
+    createBox(PxTransform(PxVec3(-15,28,-140),PxQuat(0,PxVec3(1,0,0))),45,2,15);
+    createBox(PxTransform(PxVec3(-30,28,-170),PxQuat(0,PxVec3(1,0,0))),10,2,15);
+    createBox(PxTransform(PxVec3(25,28,-170),PxQuat(0,PxVec3(1,0,0))),10,2,15);
+    createBox(PxTransform(PxVec3(40,28,-230),PxQuat(0,PxVec3(1,0,0))),10,2,60);
+
+
+    createBox(PxTransform(PxVec3(-25,28,-215),PxQuat(0,PxVec3(1,0,0))),10,2,45);
+    createBox(PxTransform(PxVec3(-5,28,-270),PxQuat(0,PxVec3(1,0,0))),10,2,20);
+
+    //the front wall and hole
+    createBox(PxTransform(PxVec3(-82.5,  60,  -291.0f)), 67.5, 60, 1);
+    createBox(PxTransform(PxVec3(0,  15,  -291.0f)), 15, 15, 1);
+    createBox(PxTransform(PxVec3(0,  90,  -291.0f)), 15, 30, 1);
+    m_hole = createBox(PxTransform(PxVec3(0,  45,  -291.0f)), 15, 15, 1.0f,true);
+    setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
+    createBox(PxTransform(PxVec3(82.5,  60,  -291.0f)), 67.5, 60, 1);
+
+
+}
+
 void World::stepPhysics(bool interactive)
 {
     PX_UNUSED(interactive)
@@ -591,11 +622,14 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                 glColor4fv(pallete[m_color[actors[i]]].xyzw );
             else
                 glColor4f(0.8f, 0.8f, 0.8f, 1.0f);
+
             if(shapePose.getPosition().y < 0 || m_shadows.contains(actors[i]))
                 tempShadows = false;
 //            if(sleeping)
 //                glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 //            else
+//                if(actors[i] == m_hole)
+//                    glColor4f(0.5f, 0.8f, 0.8f, 1.0f);
             if(toRender)
                 renderGeometry(h,m_renderables[actors[i]]);
             glPopMatrix();
@@ -708,7 +742,7 @@ void World::showSubtitles(QString &info, QPainter* m_painter) // eventually fadi
         m_painter->setPen(QPen(Qt::red));
         m_painter->setFont(QFont("Monospace", 11));
         m_painter->drawText(QRect(20,200,600,100), Qt::AlignLeft,  info);
-        if(m_subTimer.elapsed()>3000)
+        if(m_subTimer.elapsed()>4000)
         {
             info = " ";
         }
@@ -789,7 +823,6 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
 //                    mMinesToExplode.push_back(mine);
 //                break;
                 PxU32 tempFlag = contactFlag;
-                contactFlag = FilterGroup::eHOLE ;
                 if(tempFlag == FilterGroup::eSTEPPING_BOX)
                     emit m_puzzles->puzzlesSolved("You have used the stepping box to pass through the hole");
 
@@ -807,9 +840,15 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
             }
             else if((pairHeader.actors[0] == m_domino) || (pairHeader.actors[1] == m_domino))
             {
-                if(contactFlag & (FilterGroup::eSTEPPING_BOX | FilterGroup::eHOLE ))
+                if((contactFlag & FilterGroup::eSTEPPING_BOX) && (contactFlag & FilterGroup::eHOLE ))
+                {
+                    m_puzzles->level = 2;
                     emit m_puzzles->puzzlesSolved("You have finished this level");
+//                    m_camera.m_position = glm::vec3(-15.0,  40.0,  -120.0);
+                    m_levelinfo = "Level 3 - Find the path to the next door";
+                    setUpRoomTwo();
 
+                }
             }
 //            else if((pairHeader.actors[0] == groundPlane) || (pairHeader.actors[1] == groundPlane))//the ground
 //                contactFlag = FilterGroup::eGROUND ;
@@ -822,8 +861,6 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
             {
                 emit m_puzzles->puzzlesSolved("You have hit the hidden box");
                 m_levelinfo = "Level 2 - Use some tricks to push down the domino walls";
-
-                contactFlag = FilterGroup::eRED_BOX;
             }
         }
     }
@@ -831,6 +868,7 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
 
 void World::onContactModify(PxContactModifyPair *const pairs, PxU32 count)
 {
+    qDebug()<<m_puzzles->level;
     if(m_puzzles->level > 0 )
     {
         for(PxU32 i=0; i< count; i++)
