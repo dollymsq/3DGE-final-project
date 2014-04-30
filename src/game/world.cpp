@@ -84,6 +84,9 @@ World::World() :
     Vector4 violet  = Vector4(0.56f, 0.0f, 1.0f, 1.0f);
     Vector4 darkgrey = Vector4(.2f,.2f,.2f,1.0f);
     Vector4 white = Vector4(1.0f,1.0f,1.0f,1.0f);
+    Vector4 transparentgrey    = Vector4(0.9f, 0.9f, 0.9f, 0.1f);
+
+
     pallete[0]= grey;
     pallete[1]= red;
     pallete[2]= orange;
@@ -94,6 +97,7 @@ World::World() :
     pallete[7]= violet;
     pallete[8]= darkgrey;
     pallete[9] = white;
+    pallete[10] = transparentgrey;
 
 }
 
@@ -658,9 +662,9 @@ void World::setUpRoomThree()  {
 
 void World::setUpRoomFour() {
      createBox(PxTransform(PxVec3(695,-2-1e-1,0)),50,2,20,m_material,0,false,false);
-     PxActor* actor = createBox(PxTransform(PxVec3(945,0,0)),2,100,100,m_material);
-     m_scene->removeActor(*actor);
-     m_renderableList.append(actor->isRigidActor());
+     m_transptWall = createBox(PxTransform(PxVec3(945,0,0)),2,100,100,m_material);
+//     m_scene->removeActor(*m_transptWall);
+//     m_renderableList.append(m_transptWall->isRigidActor());
 }
 
 void World::setUpRoomFive()  {
@@ -955,6 +959,9 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
             else if((pairHeader.actors[0] == m_rim) || (pairHeader.actors[1] == m_rim))
             {
                 emit m_puzzles->puzzlesSolved("You have put the ball through the basket.");
+                m_color.insert(m_transptWall, 10);
+                m_scene->removeActor(*m_transptWall);
+                m_renderableList.append(m_transptWall->isRigidActor());
             }
 
             else if((pairHeader.actors[0] == m_domino) || (pairHeader.actors[1] == m_domino))

@@ -175,8 +175,9 @@ private:
     PxRigidStatic           *m_steppingbox;
     PxRigidStatic           *m_door;
     PxActor                 *currentBall;
+PxActor* m_transptWall;
 
-    Vector4                 pallete[9];
+    Vector4                 pallete[10];
     PxVec3                  m_redBlockPos;
     PxVec3                  m_redBlockOriPos;
 
