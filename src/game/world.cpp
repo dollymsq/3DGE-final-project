@@ -2,8 +2,6 @@
 #include "assets/tree.h"
 #include "math/lparser.h"
 
-Tree m_tree;
-
 PxFilterFlags WorldFilterShader(
     PxFilterObjectAttributes attributes0, PxFilterData filterData0,
     PxFilterObjectAttributes attributes1, PxFilterData filterData1,
@@ -97,6 +95,9 @@ World::~World()
     //TODO: find a better place
     cleanupPhysics(true);
     delete m_puzzles;
+    for(int i = 0; i < m_renderableList.size(); i++)  {
+        delete m_renderableList.at(i);
+    }
 }
 
 void World::init(float aspectRatio)
@@ -106,10 +107,9 @@ void World::init(float aspectRatio)
 
     initializeOpenGLFunctions();
 
-    m_tree = Tree();
+//    m_tree = Tree();
 //    m_treeTexId = loadTexture("treebark.jpg");
-    m_tree.generate(LParser::testTree());
-
+//    m_tree.generate(LParser::testTree());
 
     initPhysics(true);
 
@@ -123,10 +123,12 @@ void World::init(float aspectRatio)
 //    }
 
 //    createTreeTriMesh(m_tree);
+    setUpRoomOne();
     PxTransform pose;
     pose.p = PxVec3(0,0,0);
     pose.q= PxQuat(0,PxVec3(0,1,0));
-    createTriMesh(&m_tree,QString("tree"),pose,m_material);
+//    createTriMesh(&m_tree,QString("tree"),pose,m_material);
+//    createTriMesh(&apple,QString("apple"),pose,m_material;
 
     // Setup default render states
     glClearColor(0.1f, 0.1f, 0.1f, 1);
@@ -274,17 +276,24 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
     }
 }
 
-PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent)
+
+
+PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent, bool isShadows)
 {
     PxShape* shape = m_physics->createShape(PxBoxGeometry(x, y, z), *m_material, true);
 
     PxRigidStatic* body = m_physics->createRigidStatic(t);
     body->attachShape(*shape);
-    body->setName("cube");
+    QString name = "cube";
+    name.append(QString::number(m_renderables.size()));
+    body->setName(name.toStdString().c_str());
+    m_renderables.insert(body->getName(),&cubeMesh);
     if(isTransparent)
         body->setName("transparent");
     m_scene->addActor(*body);
 
+    if(!isShadows)
+        m_shadows.insert(body->getName());
     shape->release();
     return body;
 }
@@ -352,7 +361,6 @@ PxRigidStatic* World::createTriMesh(Renderable *r,QString name,const PxTransform
 
     PxRigidStatic* body = m_physics->createRigidStatic(t);
     PxTriangleMeshGeometry geom = PxTriangleMeshGeometry(triangleMesh,PxMeshScale());
-
     PxShape *triangleMeshShape = m_physics->createShape(geom,*m_material,true);
 
     body->attachShape(*triangleMeshShape);
@@ -429,27 +437,40 @@ void World::initPhysics(bool interactive)
 
     m_material = m_physics->createMaterial(0.5f, 0.5f, 0.6f);
 
-    groundPlane = PxCreatePlane(*m_physics, PxPlane(0,1,0,0), *m_material);
-    m_scene->addActor(*groundPlane);
-    setupFiltering(groundPlane, FilterGroup::eGROUND, FilterGroup::eBALL);
+//    groundPlane = PxCreatePlane(*m_physics, PxPlane(0,1,0,0), *m_material);
+//    m_scene->addActor(*groundPlane);
+//    setupFiltering(groundPlane, FilterGroup::eGROUND, FilterGroup::eBALL);
 
-    createStack(PxTransform(PxVec3(0,  0,  -40.0f)), 5, 2.0f);
-    createStack(PxTransform(PxVec3(0,  0,  40.0f)), 5, 2.0f);
-    createStack(PxTransform(PxVec3(-40, 0, -40.0f)), 5, 2.0f);
-    createStack(PxTransform(PxVec3(-40, 0, 40.0f)), 5, 2.0f);
+    if(!interactive)
+        createDynamic(PxTransform(PxVec3(0,40,100)), PxSphereGeometry(10), PxVec3(0,-50,-100));
+}
 
-    //the wall and hole
-    createBox(PxTransform(PxVec3(-60,  60,  -80.0f)), 30, 60, 2);
-    createBox(PxTransform(PxVec3(-15,  15,  -80.0f)), 15, 15, 2);
-    createBox(PxTransform(PxVec3(-15,  90,  -80.0f)), 15, 30, 2);
-    m_hole = createBox(PxTransform(PxVec3(-15,  45,  -80.0f)), 10, 10, 2,true); // make the hole smaller
+void World::setUpRoomOne()  {
+    createStack(PxTransform(PxVec3(-60,  0,  -60.0f)), 5, 2.0f);
+    createStack(PxTransform(PxVec3(-60,  0,  60.0f)), 5, 2.0f);
+    createStack(PxTransform(PxVec3(60, 0, -60.0f)), 5, 2.0f);
+    createStack(PxTransform(PxVec3(60, 0, 60.0f)), 5, 2.0f);
+
+    //the floor
+    createBox(PxTransform(PxVec3(0,-100 -1e-1,-100),PxQuat(0,PxVec3(1,0,0))),150,100,200);
+
+    //the front wall and hole
+    createBox(PxTransform(PxVec3(-82.5,  60,  -100.0f)), 67.5, 60, 2);
+    createBox(PxTransform(PxVec3(0,  15,  -100.0f)), 15, 15, 2);
+    createBox(PxTransform(PxVec3(0,  90,  -100.0f)), 15, 30, 2);
+//    createBox(PxTransform(PxVec3()))
+    m_hole = createBox(PxTransform(PxVec3(0,  45,  -100.0f)), 15, 15, 1.0f,true);
     setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
-    createBox(PxTransform(PxVec3(30,  60,  -80.0f)), 30, 60, 2);
+    createBox(PxTransform(PxVec3(82.5,  60,  -100.0f)), 67.5, 60, 2);
 
-    //the stepping box
-    m_steppingbox = createBox(PxTransform(PxVec3(-20,  2,  -10.0f)), 10, 2, 10);
-    setupFiltering(m_steppingbox, FilterGroup::eSTEPPING_BOX, FilterGroup::eBALL);
+    //the back wall
+    createBox(PxTransform(PxVec3(0,60,100.0f)),150,60,2,false,false);
 
+    //trees
+    Tree *t1 = new Tree();
+    t1->generate(LParser::testTree());
+    createTriMesh(t1,"tree1",PxTransform(PxVec3(40,0,0),PxQuat(0,PxVec3(0,1,0))),m_material);
+    m_renderableList.append(t1);
     //create domino
     m_domino = createDynamicBox(PxTransform(PxVec3(-15,  30,  -120.0f)), 10, 30, 2, false, 1);
     setupFiltering(m_domino, FilterGroup::eGROUND, FilterGroup::eBALL);
@@ -460,8 +481,19 @@ void World::initPhysics(bool interactive)
     createDynamicBox(PxTransform(PxVec3(-15,  50,  -220.0f)), 10, 50, 2, false, 6);
     createDynamicBox(PxTransform(PxVec3(-15,  50,  -240.0f)), 10, 50, 2, false, 7);
 
-    if(!interactive)
-        createDynamic(PxTransform(PxVec3(0,40,100)), PxSphereGeometry(10), PxVec3(0,-50,-100));
+    Tree *t2 = new Tree();
+    t2->generate(LParser::testTree());
+    createTriMesh(t2,"tree2",PxTransform(PxVec3(-60,0,20),PxQuat(0,PxVec3(0,1,0))),m_material);
+    m_renderableList.append(t2);
+
+//    Tree *t3 = new Tree();
+//    t3->generate(LParser::testTree());
+//    createTriMesh(t3,"tree3",PxTransform(PxVec3(80,0,50),PxQuat(0,PxVec3(0,1,0))),m_material);
+//    m_renderableList.append(t3);
+
+    //the stepping box
+    m_steppingbox = createBox(PxTransform(PxVec3(0,  2,  0)), 10, 2, 10);
+    setupFiltering(m_steppingbox, FilterGroup::eSTEPPING_BOX, FilterGroup::eBALL);
 }
 
 void World::stepPhysics(bool interactive)
@@ -487,11 +519,12 @@ void World::cleanupPhysics(bool interactive)
 void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shadows)
 {
 //    glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
-
+    bool tempShadows = shadows;
     PxShape* shapes[MAX_NUM_ACTOR_SHAPES];
 //    std::cout << "number of actors: " << numActors << std::endl;
     for(PxU32 i=0;i<numActors;i++)
     {
+        tempShadows = shadows;
         const PxU32 nbShapes = actors[i]->getNbShapes();
 
         PX_ASSERT(nbShapes <= MAX_NUM_ACTOR_SHAPES);
@@ -504,6 +537,7 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
             PxGeometryHolder h = shapes[j]->getGeometry();
             bool toRender = true;
             // render object
+
             glPushMatrix();
             glMultMatrixf((float*)&shapePose);
             if (actors[i] == m_redBlock)
@@ -514,6 +548,11 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                 glColor4fv(pallete[m_color[actors[i]]].xyzw );
             else
                 glColor4f(0.8f, 0.8f, 0.8f, 1.0f);
+            if(m_shadows.contains(actors[i]->getName()))
+                    std::cout << "actor " << actors[i]->getName() << " is in shadows" << std::endl;
+            if(shapePose.getPosition().y < 0 || m_shadows.contains(actors[i]->getName()));
+//                std::cout << actors[i]->getName() << std::endl;
+                tempShadows = false;
 //            if(sleeping)
 //                glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 //            else
@@ -522,7 +561,7 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
             glPopMatrix();
 
             // notice this are really fake shadows
-            if(shadows && toRender)
+            if(tempShadows && toRender)
             {
                 const PxVec3 shadowDir(0.0f, -0.7071067f, -0.7071067f);
                 const PxReal shadowMat[]={ 1,0,0,0, -shadowDir.x/shadowDir.y,0,-shadowDir.z/shadowDir.y,0, 0,0,1,0, 0,0,0,1 };
@@ -694,6 +733,11 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
 //                if(std::find(mMinesToExplode.begin(), mMinesToExplode.end(), mine) == mMinesToExplode.end())
 //                    mMinesToExplode.push_back(mine);
 //                break;
+                PxU32 tempFlag = contactFlag;
+                contactFlag = FilterGroup::eHOLE ;
+                if(tempFlag == FilterGroup::eSTEPPING_BOX)
+                    emit m_puzzles->puzzlesSolved("You have used the stepping box to pass through the hole");
+
                 contactFlag |= FilterGroup::eHOLE ;
                 if(m_puzzles->level == 1)
                 {
@@ -712,12 +756,8 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
                     emit m_puzzles->puzzlesSolved("You have finished this level");
 
             }
-            else if((pairHeader.actors[0] == groundPlane) || (pairHeader.actors[1] == groundPlane))//the ground
-            {
-                PxActor* otherActor = (m_steppingbox == pairHeader.actors[0]) ? pairHeader.actors[1] : pairHeader.actors[0];
-                if(otherActor == currentBall)
-                    contactFlag = FilterGroup::eGROUND ;
-            }
+//            else if((pairHeader.actors[0] == groundPlane) || (pairHeader.actors[1] == groundPlane))//the ground
+//                contactFlag = FilterGroup::eGROUND ;
             else if((pairHeader.actors[0] == m_steppingbox) || (pairHeader.actors[1] == m_steppingbox))//for the stepping box
             {
                 contactFlag = FilterGroup::eSTEPPING_BOX;
@@ -727,6 +767,8 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
             {
                 emit m_puzzles->puzzlesSolved("You have hit the hidden box");
                 m_levelinfo = "Level 2 - Use some tricks to push down the domino walls";
+
+                contactFlag = FilterGroup::eRED_BOX;
             }
         }
     }

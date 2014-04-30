@@ -101,7 +101,7 @@ public:
 
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
-    PxRigidStatic  *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false);
+    PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false,bool isShadows = true);
     PxRigidDynamic *createDynamicBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false, int colornum = 0);
     PxRigidStatic *createTriMesh(Renderable *r,QString name,const PxTransform &t,PxMaterial *m_material,bool isTransparent = false);
     void createTreeActors(Tree &t);
@@ -119,6 +119,8 @@ private:
     QString m_dynamicsMessage;
     QString m_levelinfo;
 
+    void setUpRoomOne();
+
     GLuint loadTexture(const QString &path);
 
     GLuint m_treeTexId;
@@ -130,6 +132,8 @@ private:
     PxU32 contactFlag;//to mark for the last contact actor
 
     QHash<const char*,Renderable*> m_renderables;
+    QSet<const char*> m_shadows;
+    QVector<Renderable*> m_renderableList;
     QHash<const PxActor*,int> m_color;
 
     PxCooking *m_cooking;
