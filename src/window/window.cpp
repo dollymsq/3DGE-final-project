@@ -92,7 +92,6 @@ void Window::mouseReleaseEvent(QMouseEvent *event)
 void Window::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape) QWindow::close();
-
     switch(event->key()) {
     case Qt::Key_W:
         m_world.enableForward(true);
