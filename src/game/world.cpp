@@ -84,6 +84,9 @@ World::World() :
     Vector4 violet  = Vector4(0.56f, 0.0f, 1.0f, 1.0f);
     Vector4 darkgrey = Vector4(.2f,.2f,.2f,1.0f);
     Vector4 white = Vector4(1.0f,1.0f,1.0f,1.0f);
+    Vector4 transparentgrey    = Vector4(0.9f, 0.9f, 0.9f, 0.1f);
+
+
     pallete[0]= grey;
     pallete[1]= red;
     pallete[2]= orange;
@@ -94,6 +97,7 @@ World::World() :
     pallete[7]= violet;
     pallete[8]= darkgrey;
     pallete[9] = white;
+    pallete[10] = transparentgrey;
 
 }
 
@@ -168,7 +172,7 @@ void World::init(float aspectRatio)
     m_dyanmicsCount = 10;
     m_dynamicsMessage = "Number of Balls Left: " + QString::number(m_dyanmicsCount);
 
-    m_levelinfo = "Level 1 - Find and trigger the red box!";
+    m_levelinfo = "Level 101 - Find and trigger the red box!";
     initShaders();
 
 //    m_treeTexId = loadTexture("treebark.jpg");
@@ -509,7 +513,7 @@ void World::setUpRoomOne()  {
 
 
     //create domino
-    m_domino = createDynamicBox(PxTransform(PxVec3(0,  30,  -120.0f)), 10, 30, 2, false, 1);
+    m_domino = createDynamicBox(PxTransform(PxVec3(0,  30,  -120.0f)), 10, 30, 2, false,true, 1);
     setupFiltering(m_domino, FilterGroup::eRED_BOX, FilterGroup::eBALL);
     createDynamicBox(PxTransform(PxVec3(0,  40,  -140.0f)), 10, 40, 2, false, true, 2);
     createDynamicBox(PxTransform(PxVec3(0,  50,  -160.0f)), 10, 50, 2, false, true, 3);
@@ -533,6 +537,8 @@ void World::setUpRoomOne()  {
     PxCapsuleControllerDesc desc;
 //	desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
     desc.position = PxExtendedVec3(0.0f, 0.0f, 0.0f); //1400
+//    desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
+//    desc.position = PxExtendedVec3(1300.0f, 0.0f, 0.0f);
     desc.contactOffset			= .50f;
     desc.stepOffset			= 2.0f;
     desc.slopeLimit			= 0.00f;
@@ -647,6 +653,7 @@ void World::setUpRoomThree()  {
     //create pole for bball net
 
     m_puzzles->level = 3;
+//    m_puzzles->level = 3;
 //    m_playerController->setPosition(PxExtendedVec3(550,  10,  -40.0));
 
     PxMaterial * backboardMaterial = m_physics->createMaterial(.95,.95,0);
@@ -662,9 +669,9 @@ void World::setUpRoomThree()  {
 
 void World::setUpRoomFour() {
      createBox(PxTransform(PxVec3(695,-2-1e-1,0)),50,2,20,m_material,0,false,false);
-     PxActor* actor = createBox(PxTransform(PxVec3(945,0,0)),2,100,100,m_material);
-     m_scene->removeActor(*actor);
-     m_renderableList.append(actor->isRigidActor());
+     m_transptWall = createBox(PxTransform(PxVec3(945,0,0)),2,100,100,m_material);
+//     m_scene->removeActor(*m_transptWall);
+//     m_renderableList.append(m_transptWall->isRigidActor());
 }
 
 void World::setUpRoomFive()  {
@@ -852,6 +859,19 @@ void World::tick(float seconds)
             m_boulder = createDynamic(PxTransform(PxVec3(1550,60,0)),PxSphereGeometry(100),PxVec3(70,-.5,0),0,false);
             m_isBoulder = true;
         }
+        if(!m_puzzleSolved&& pos.x>=330)
+        {
+            m_puzzleSolved = 1;
+            emit m_puzzles->OnePuzzleSolved("You have chosen the right path.");
+            m_levelinfo = "Level 3 - Shoot the ball to uncover next level";
+        }
+        else if(m_puzzleSolved == 1 && pos.x>= 1400)
+        {
+            m_puzzleSolved = 2;
+            emit m_puzzles->OnePuzzleSolved("You have travelled through the cave.");
+            m_levelinfo = "Level 5 - ";
+        }
+//        std::cerr << glm::to_string(m_camera.m_position) << std::endl;
 
 //        std::cerr << glm::to_string(m_camera.m_position) << std::endl;
         checkGameOver();
@@ -993,7 +1013,7 @@ void World::showSubtitles(QString &info, QPainter* m_painter) // eventually fadi
 void World::showPermanentStat(QString &info, QPainter* m_painter)
 {
     m_painter->setPen(QPen(Qt::white));
-    m_painter->drawText(QRect(20,140,600,100), Qt::AlignLeft, "Press space to shoot!");
+    m_painter->drawText(QRect(20,140,600,100), Qt::AlignLeft, "Click mouse to shoot!");
     m_painter->setPen(QPen(Qt::gray));
     m_painter->setFont(QFont("Monospace", 11));
 
@@ -1078,17 +1098,23 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
             else if((pairHeader.actors[0] == m_rim) || (pairHeader.actors[1] == m_rim))
             {
                 emit m_puzzles->puzzlesSolved("You have put the ball through the basket.");
+                m_color.insert(m_transptWall, 10);
+                m_scene->removeActor(*m_transptWall);
+                m_renderableList.append(m_transptWall->isRigidActor());
+
+                m_levelinfo = "Level 4 - The Cave(don't get stuck!)";
             }
 
             else if((pairHeader.actors[0] == m_domino) || (pairHeader.actors[1] == m_domino))
             {
                 if((contactFlag & FilterGroup::eSTEPPING_BOX) && (contactFlag & FilterGroup::eHOLE ))
                 {
+                    contactFlag = 0;
                     m_puzzles->level = 2;
                     emit m_puzzles->puzzlesSolved("You have finished this level");
-                    m_levelinfo = "Level 3 - Find the path to the next door";
+                    m_levelinfo = "Level 2 - Find the path to the next scene";
 
-//                    m_scene->removeActor(*m_door,true);
+                    m_scene->removeActor(*m_door,true);
                 }
             }
 //            else if((pairHeader.actors[0] == groundPlane) || (pairHeader.actors[1] == groundPlane))//the ground
@@ -1102,7 +1128,7 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
             {
                 emit m_puzzles->puzzlesSolved("You have hit the hidden box");
                 m_hole->setName("transparent");
-                m_levelinfo = "Level 2 - Use some tricks to push down the domino walls";
+                m_levelinfo = "Level 102 - Use the trampoline at the center to push down the domino walls";
             }
         }
     }

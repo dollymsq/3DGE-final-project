@@ -86,7 +86,7 @@ public:
     PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0), int color = 0, bool isShadow = true,bool isTrajectory = true);
 
     Puzzles *m_puzzles;
-    bool m_puzzleSolved;
+    int m_puzzleSolved;
 
     bool m_isBoulder = false;
 
@@ -187,8 +187,9 @@ private:
     PxRigidStatic           *m_steppingbox;
     PxRigidStatic           *m_door;
     PxActor                 *currentBall;
+PxActor* m_transptWall;
 
-    Vector4                 pallete[9];
+    Vector4                 pallete[10];
     PxVec3                  m_redBlockPos;
     PxVec3                  m_redBlockOriPos;
 
