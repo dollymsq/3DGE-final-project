@@ -163,7 +163,7 @@ SOURCES += \
     src/game/puzzles.cpp \
     src/graphics/opengl.cpp \
     src/assets/tree.cpp \
-    src/math/lparser.cpp\
+    src/math/lparser.cpp \
     src/math/calc.cpp
 
 HEADERS += \
@@ -183,9 +183,8 @@ HEADERS += \
     src/math/common.h \
     src/math/levent.h \
     src/math/lcommand.h \
-    src/assets/renderable.h\
+    src/assets/renderable.h \
     src/math/calc.h
-
 
 RESOURCES += \
     $${RES}/resources.qrc

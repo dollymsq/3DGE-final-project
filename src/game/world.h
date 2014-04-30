@@ -66,7 +66,11 @@ struct Color
 
 };
 
-class World : public QObject, protected QOpenGLFunctions, public PxSimulationEventCallback, public PxContactModifyCallback
+class World : public QObject, protected QOpenGLFunctions,
+        public PxSimulationEventCallback,
+        public PxContactModifyCallback,
+        public PxUserControllerHitReport,
+        public PxControllerBehaviorCallback
 {
     Q_OBJECT
 
@@ -79,7 +83,7 @@ public:
     void tick(float seconds);
 
 
-    PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0));
+    PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0), int color = 0);
 
     Puzzles *m_puzzles;
     bool m_puzzleSolved;
@@ -94,7 +98,17 @@ public:
     glm::mat4 getVMatrix();
     void rotateMouse(glm::vec2 delta);
 
+    virtual void onShapeHit(const PxControllerShapeHit& hit);
+    virtual void onControllerHit(const PxControllersHit& hit);
+    virtual void onObstacleHit(const PxControllerObstacleHit& hit);
+
+    virtual PxControllerBehaviorFlags getBehaviorFlags(const PxShape& shape, const PxActor& actor);
+    virtual PxControllerBehaviorFlags getBehaviorFlags(const PxController& controller);
+    virtual PxControllerBehaviorFlags getBehaviorFlags(const PxObstacle& obstacle);
+
+
     virtual void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs);
+
     virtual void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) {}
     virtual void onWake(PxActor** actors, PxU32 count) {}
     virtual void onSleep(PxActor** actors, PxU32 count) {}
@@ -102,13 +116,11 @@ public:
 
     virtual void onContactModify(PxContactModifyPair *const pairs, PxU32 count);
 
-
-
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
-    PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false,bool isShadows = true);
-    PxRigidDynamic *createDynamicBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false, int colornum = 0);
-    PxRigidStatic *createTriMesh(Renderable *r,const PxTransform &t,PxMaterial *m_material,bool isTransparent = false);
+    PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, int color = 0, bool isTransparent = false,bool isShadows = true);
+    PxRigidDynamic *createDynamicBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false, bool isShadows = true,int colornum = 0);
+    PxRigidStatic *createTriMesh(Renderable *r,const PxTransform &t,PxMaterial *m_material, int color = 0,bool isTransparent = false, bool isShadows = true);
     void createTreeActors(Tree &t);
     void initPhysics(bool interactive);
     void stepPhysics(bool interactive);
