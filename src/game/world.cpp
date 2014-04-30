@@ -151,6 +151,7 @@ void World::init(float aspectRatio)
     m_dyanmicsCount = 40;
     m_dynamicsMessage = "Number of Balls Left: " + QString::number(m_dyanmicsCount);
 
+    m_levelinfo = "Level 1 - Find and trigger the red box!";
     initShaders();
 
 //    m_treeTexId = loadTexture("treebark.jpg");
@@ -213,6 +214,7 @@ void World::draw(QPainter *m_painter)
 
     showSubtitles(m_puzzles->infoToPrint, m_painter);
     showPermanentStat(m_dynamicsMessage, m_painter);
+    showLevelStat(m_levelinfo, m_painter);
 }
 
 PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity)
@@ -626,13 +628,20 @@ void World::showSubtitles(QString &info, QPainter* m_painter) // eventually fadi
 
 void World::showPermanentStat(QString &info, QPainter* m_painter)
 {
+    m_painter->setPen(QPen(Qt::white));
+    m_painter->drawText(QRect(20,140,600,100), Qt::AlignLeft, "Press space to shoot!");
     m_painter->setPen(QPen(Qt::gray));
     m_painter->setFont(QFont("Monospace", 11));
+
     m_painter->drawText(QRect(20,80,600,100), Qt::AlignLeft, info);
 
+
+}
+
+void World::showLevelStat(QString &info, QPainter* m_painter)
+{
     m_painter->setPen(QPen(Qt::white));
-    m_painter->drawText(QRect(20,120,600,100), Qt::AlignLeft, "Find the red box!");
-    m_painter->drawText(QRect(20,140,600,100), Qt::AlignLeft, "Press space to shoot!");
+    m_painter->drawText(QRect(20,120,600,100), Qt::AlignLeft, info);
 }
 
 glm::mat4 World::getPMatrix()
@@ -717,6 +726,7 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
             else
             {
                 emit m_puzzles->puzzlesSolved("You have hit the hidden box");
+                m_levelinfo = "Level 2 - Use some tricks to push down the domino walls";
             }
         }
     }

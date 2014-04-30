@@ -76,8 +76,6 @@ public:
 
     PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0));
 
-    int m_dyanmicsCount;
-    QString m_dynamicsMessage;
     Puzzles *m_puzzles;
     bool m_puzzleSolved;
 
@@ -115,6 +113,11 @@ private:
     void renderGeometry(const PxGeometryHolder& h, Renderable *r);
     void showSubtitles(QString &info, QPainter* m_painter);
     void showPermanentStat(QString &info, QPainter* m_painter);
+    void showLevelStat(QString &info, QPainter* m_painter);
+
+    int m_dyanmicsCount;
+    QString m_dynamicsMessage;
+    QString m_levelinfo;
 
     GLuint loadTexture(const QString &path);
 
