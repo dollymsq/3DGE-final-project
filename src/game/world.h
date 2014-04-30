@@ -14,6 +14,8 @@
 #include "assets/obj.h"
 #include "assets/tree.h"
 #include "scene/camera.h"
+#include "assets/tree.h"
+#include "math/lparser.h"
 
 #include <iostream>
 #include "puzzles.h"
@@ -27,7 +29,9 @@
 #define PVD_HOST "127.0.0.1"
 #define MAX_NUM_ACTOR_SHAPES 125
 #include <PxPhysicsAPI.h>
-#include "PxSimulationEventCallback.h"
+#include <characterkinematic/PxController.h>
+#include <characterkinematic/PxControllerBehavior.h>
+#include <PxSimulationEventCallback.h>
 using namespace physx;
 
 struct FilterGroup
@@ -133,7 +137,9 @@ private:
     PxDefaultCpuDispatcher*	m_dispatcher;
     PxScene*				m_scene;
 
-    PxControllerManager*    m_manager;
+    // player camera controller
+    PxControllerManager*    m_controllerManager;
+    PxController*           m_playerController;
 
     PxMaterial*				m_material;
 

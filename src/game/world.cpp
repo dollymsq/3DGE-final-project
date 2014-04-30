@@ -1,6 +1,5 @@
 #include "world.h"
-#include "assets/tree.h"
-#include "math/lparser.h"
+
 
 Tree m_tree;
 
@@ -63,6 +62,7 @@ World::World() :
     m_material(NULL),
     m_connection(NULL),
     m_redBlock(NULL),
+    m_playerController(NULL),
     m_stackZ(10.0f),
     m_puzzleSolved(false),
     contactFlag(0),
@@ -397,6 +397,7 @@ void World::initPhysics(bool interactive)
         m_connection = PxVisualDebuggerExt::createConnection(m_physics->getPvdConnectionManager(), PVD_HOST, 5425, 10);
     }
 
+
     PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
     sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
     m_dispatcher = PxDefaultCpuDispatcherCreate(2);
@@ -406,12 +407,14 @@ void World::initPhysics(bool interactive)
     sceneDesc.contactModifyCallback = this;
     m_scene = m_physics->createScene(sceneDesc);
 
+
     m_material = m_physics->createMaterial(0.5f, 0.5f, 0.6f);
 
     groundPlane = PxCreatePlane(*m_physics, PxPlane(0,1,0,0), *m_material);
     m_scene->addActor(*groundPlane);
     setupFiltering(groundPlane, FilterGroup::eGROUND, FilterGroup::eBALL);
 
+    // level 1 - pyramids
     createStack(PxTransform(PxVec3(0,  0,  -40.0f)), 5, 2.0f);
     createStack(PxTransform(PxVec3(0,  0,  40.0f)), 5, 2.0f);
     createStack(PxTransform(PxVec3(-40, 0, -40.0f)), 5, 2.0f);
@@ -435,8 +438,56 @@ void World::initPhysics(bool interactive)
     createDynamicBox(PxTransform(PxVec3(-15,  40,  -140.0f)), 10, 40, 2);
     createDynamicBox(PxTransform(PxVec3(-15,  50,  -160.0f)), 10, 50, 2);
 
-    if(!interactive)
-        createDynamic(PxTransform(PxVec3(0,40,100)), PxSphereGeometry(10), PxVec3(0,-50,-100));
+    m_controllerManager = PxCreateControllerManager(*m_scene);
+
+    const float gScaleFactor    	= 1.5f;
+	const float gStandingSize		= 1.0f * gScaleFactor;
+	const float gCrouchingSize		= 0.25f * gScaleFactor;
+	const float gControllerRadius	= 0.3f * gScaleFactor;
+
+    PxCapsuleControllerDesc desc;
+	desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
+    desc.contactOffset			= 0.05f;
+    desc.stepOffset			= 0.01;
+    desc.slopeLimit			= 0.5f;
+    desc.radius				= 5.0f;
+    desc.height				= 25.0f;
+    desc.upDirection = PxVec3(0, 1, 0);
+    desc.material = m_material;
+
+
+//    desc.invisibleWallHeight	= 0.0f;
+//    desc.maxJumpHeight			= 0.0f;
+//    desc.scaleCoeff = 0.0f;
+//    desc.volumeGrowth = 0.0f;
+//    desc.density = 0.0f;
+//    desc.material = m_material;
+
+//	desc.mReportCallback		= this;
+//	desc.mBehaviorCallback		= this;
+
+/*
+ THE DESC IS VALID IF AND ONLY IF
+    if(!PxControllerDesc::isValid())	return false;
+	if(radius<=0.0f)					return false;
+	if(height<=0.0f)					return false;
+	if(stepOffset>height+radius*2.0f)	return false;	// Prevents obvious mistakes
+	return true;
+
+    if(		type!=PxControllerShapeType::eBOX
+		&&	type!=PxControllerShapeType::eCAPSULE)
+		return false;
+	if(scaleCoeff<0.0f)		return false;
+	if(volumeGrowth<1.0f)	return false;
+	if(density<0.0f)		return false;
+	if(slopeLimit<0.0f)		return false;
+	if(stepOffset<0.0f)		return false;
+	if(contactOffset<=0.0f)	return false;
+	if(!material)			return false;
+
+*/
+    std::cout << "CONTROLLER VALID" << " " << desc.isValid() <<  " (should be 1)" << std::endl;
+    m_playerController = m_controllerManager->createController(desc);
 }
 
 void World::stepPhysics(bool interactive)
@@ -556,7 +607,22 @@ void World::renderGeometry(const PxGeometryHolder& h, Renderable *r)
 
 void World::tick(float seconds)
 {
-    m_camera.update(seconds);
+    if (m_playerController != NULL) {
+        const PxExtendedVec3 &pos = m_playerController->getPosition();
+        m_camera.m_position.x = pos.x;
+        m_camera.m_position.y = pos.y;
+        m_camera.m_position.z = pos.z;
+
+        m_camera.update(seconds);
+        PxVec3 disp(m_camera.m_position.x - pos.x,
+                    m_camera.m_position.y - pos.y,
+                    m_camera.m_position.z - pos.z);
+        disp += PxVec3(0, -0.8f, 0);
+
+//        std::cout << glm::to_string(m_camera.m_position) << std::endl;
+        m_playerController->move(disp, 0.1f, seconds, NULL, NULL);
+    }
+
     stepPhysics(true);
 }
 
