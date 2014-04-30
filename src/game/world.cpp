@@ -57,6 +57,7 @@ World::World() :
     rimMesh("rim.obj"),
     discMesh("disc.obj"),
     appleMesh("apple.obj"),
+    appleMeshSmall("appleSmall.obj"),
     caveMesh("m_caveMeshLessTris.obj"),
     level6Mesh("level5Mesh.obj"),
     m_foundation(NULL),
@@ -141,6 +142,7 @@ void World::init(float aspectRatio)
     setUpRoomFour();
     setUpRoomFive();
     setUpRoomSix();
+    setUpRoomSeven();
 
     PxTransform pose;
     pose.p = PxVec3(0,0,0);
@@ -203,7 +205,7 @@ void World::draw(QPainter *m_painter)
     glEnable(GL_DEPTH_TEST);
 
 
-//    glColor4f(1.0f, 0.1f, 0.1f, 1.0f);
+    glColor4f(1.0f, 0.1f, 0.1f, 1.0f);
     glEnable(GL_LIGHTING);
 
     PxScene* scene;
@@ -221,7 +223,7 @@ void World::draw(QPainter *m_painter)
         renderActors(&m_renderableList[0],(PxU32)m_renderableList.size(),true);
     }
 
-    glDisable(GL_LIGHTING);
+//    glDisable(GL_LIGHTING);
 
 //    // Draw grid
 //    glColor4f(0.5f, 0.5f, 0.5f, 0.25f);
@@ -242,7 +244,7 @@ void World::draw(QPainter *m_painter)
     showLevelStat(m_levelinfo, m_painter);
 }
 
-PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity,int color,bool isShadow,bool isTrajectory)
+PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geometry, Renderable *r,const PxVec3& velocity,int color,bool isShadow,bool isTrajectory)
 {
     if(m_dyanmicsCount <= 0 && isTrajectory)
     {
@@ -258,7 +260,7 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
         dynamic->setAngularDamping(0.5f);
         dynamic->setLinearVelocity(velocity);
 //        dynamic->setName("sphere");
-        m_renderables.insert(dynamic,&sphereMesh);
+        m_renderables.insert(dynamic,r);
         m_color.insert(dynamic,color);
         if(!isShadow)
             m_shadows.insert(dynamic);
@@ -460,7 +462,7 @@ void World::initPhysics(bool interactive)
 //    setupFiltering(groundPlane, FilterGroup::eGROUND, FilterGroup::eBALL);
 
     if(!interactive)
-        createDynamic(PxTransform(PxVec3(0,40,100)), PxSphereGeometry(10), PxVec3(0,-50,-100));
+        createDynamic(PxTransform(PxVec3(0,40,100)), PxSphereGeometry(10), &sphereMesh,PxVec3(0,-50,-100));
 }
 
 void World::setUpRoomOne()  {
@@ -524,7 +526,7 @@ void World::setUpRoomOne()  {
 
     //create spheres
     for(int i = 0; i < 10; i++)  {
-        m_balls.insert(createDynamic(PxTransform(Calc::random(-90,90),2,Calc::random(-90,90)),PxSphereGeometry(3.0f)));
+        m_balls.insert(createDynamic(PxTransform(Calc::random(-90,90),2,Calc::random(-90,90)),PxSphereGeometry(3.0f),&sphereMesh));
     }
 
     m_controllerManager = PxCreateControllerManager(*m_scene);
@@ -536,7 +538,7 @@ void World::setUpRoomOne()  {
 
     PxCapsuleControllerDesc desc;
 //	desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
-    desc.position = PxExtendedVec3(0.0f, 0.0f, 0.0f); //1400
+    desc.position = PxExtendedVec3(2500.0f, 0.0f, 0.0f); //1400
 //    desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
 //    desc.position = PxExtendedVec3(1300.0f, 0.0f, 0.0f);
     desc.contactOffset			= .50f;
@@ -657,7 +659,7 @@ void World::setUpRoomThree()  {
 //    m_playerController->setPosition(PxExtendedVec3(550,  10,  -40.0));
 
     PxMaterial * backboardMaterial = m_physics->createMaterial(.95,.95,0);
-    PxMaterial * rimMaterial = m_physics->createMaterial(.1,.3,.5);
+    PxMaterial * rimMaterial = m_physics->createMaterial(.1,.1,.5);
     createBox(PxTransform(PxVec3(550,0,-90)),20,100,10,m_material,0,false,false);
     createBox(PxTransform(PxVec3(550,50,-80),PxQuat(M_PI/8.0f,PxVec3(1,0,0))),10,2,20,m_material,false,false);
     createTriMesh(&backboardMesh,PxTransform(PxVec3(550,70,-80),PxQuat(-1.0f*M_PI/2.0f,PxVec3(0,1,0))),backboardMaterial,9,false,false);
@@ -692,6 +694,19 @@ void World::setUpRoomSix()  {
         curLoc+= 85.5;
     }
 
+}
+
+void World::setUpRoomSeven()  {
+    createBox(PxTransform(PxVec3(2600,-700,0)),100,100,150,m_material);
+    createBox(PxTransform(PxVec3(3200,-700,0)),150,100,150,m_material);
+    createBox(PxTransform(PxVec3(2875,-602,0)),175,2,10,m_material);
+    //tree
+    Tree *t = new Tree();
+    m_trees.append(t);
+    t->generate(LParser::testTreeEnd());
+    createTriMesh(t,PxTransform(PxVec3(3200,-600,0)),m_material);
+    m_apple = createTriMesh(&appleMesh,PxTransform(PxVec3(3122,-494,-2)),m_material,1,false, true);
+//    createDynamic(PxTransform(PxVec3(3200,-600,0)),PxSphereGeometry(100),&appleMesh,PxVec3(0),0,false,false);
 }
 
 void World::stepPhysics(bool interactive)
@@ -747,20 +762,34 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                 glm::vec3 p(shapePose.getPosition().x,shapePose.getPosition().y,shapePose.getPosition().z);
                 glm::vec3 playerP(m_playerController->getPosition().x,m_playerController->getPosition().y,m_playerController->getPosition().z);
                 if(glm::distance(p,playerP) < 110)  {
-                    std::cerr << "dead" << std::endl;
+//                    std::cerr << "dead" << std::endl;
                     m_gameOver = true;
                 }
             }
 
             if(m_balls.contains(actors[i]))  {
+//                std::cerr << "yaya" << std::endl;
                 glm::vec3 p(shapePose.getPosition().x,shapePose.getPosition().y,shapePose.getPosition().z);
 //                std::cerr << m_playerController->getPosition().y << std::endl;
                 glm::vec3 playerP(m_playerController->getPosition().x,shapePose.getPosition().y,m_playerController->getPosition().z);
+
+                PxVec3 appleVec = PxVec3(3122,-494,-2);
+                glm::vec3 appleP(appleVec.x,appleVec.y,appleVec.z);
+//                std::cerr << glm::to_string(playerP) << std::endl;
                 if(glm::distance(p,playerP) < 7)  {
                     m_dyanmicsCount++;
                     m_dynamicsMessage = "Number of Balls Left: " + QString::number(m_dyanmicsCount);
                     m_scene->removeActor(*actors[i]);
                     m_balls.remove(actors[i]);
+                }
+                if(glm::distance(appleP,p) < 6) {
+//                    std::cerr << "meow!" << std::endl;
+                    if(m_renderables.contains(m_apple)) {
+                        m_scene->removeActor(*m_apple);
+                        m_renderables.remove(m_apple);
+                        m_apple2 = createDynamic(PxTransform(appleVec),PxSphereGeometry(2),&appleMeshSmall,PxVec3(0),1,true,false);
+                    }
+
                 }
             }
 
@@ -856,7 +885,7 @@ void World::tick(float seconds)
 
 //        std::cerr << glm::to_string(glm::vec3(pos.x,pos.y,pos.z)) << std::endl;
         if(pos.x > 1700 && !m_isBoulder)  {
-            m_boulder = createDynamic(PxTransform(PxVec3(1550,60,0)),PxSphereGeometry(100),PxVec3(70,-.5,0),0,false);
+            m_boulder = createDynamic(PxTransform(PxVec3(1550,60,0)),PxSphereGeometry(100),&sphereMesh,PxVec3(50,-.5,0),0,false);
             m_isBoulder = true;
         }
         if(!m_puzzleSolved&& pos.x>=330)
@@ -896,7 +925,7 @@ void World::checkGameOver()  {
         resetGame();
     if(pos.x < 1600 && pos.y < -10)
         m_gameOver = true;
-    if(pos.x > 1600 && pos.y < -600)
+    if(pos.x > 1600 && pos.y < -700)
         m_gameOver = true;
 }
 
@@ -929,12 +958,15 @@ void World::resetGame()  {
     m_isBoulder = false;
 
     m_balls.clear();
+    for(int i = 0; i < m_trees.size(); i++)  {
+        delete m_trees.at(i);
+    }
     m_trees.clear();
     m_color.clear();
 
     m_scene->release();
 
-    contactFlag = NULL;
+    contactFlag = 0;
 
     PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
     sceneDesc.gravity = PxVec3(0.0f, -10.81f, 0.0f);
@@ -955,6 +987,7 @@ void World::resetGame()  {
     setUpRoomFour();
     setUpRoomFive();
     setUpRoomSix();
+    setUpRoomSeven();
 
     PxTransform pose;
     pose.p = PxVec3(0,0,0);
@@ -988,7 +1021,7 @@ void World::shootDynamic()
         transform = PxTransform(eye + dir * 8.0f, PxQuat(m));
     }
 
-    m_balls.insert(createDynamic(transform, PxSphereGeometry(2.5f), dir*100));
+    m_balls.insert(createDynamic(transform, PxSphereGeometry(2.5f), &sphereMesh, dir*100));
 }
 
 void World::showSubtitles(QString &info, QPainter* m_painter) // eventually fading away

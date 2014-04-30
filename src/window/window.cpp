@@ -127,5 +127,8 @@ void Window::keyReleaseEvent(QKeyEvent *event)
     case Qt::Key_D:
         m_world.enableRight(false);
         break;
+    case Qt::Key_R:
+        m_world.resetGame();
+        break;
     }
 }

@@ -83,7 +83,7 @@ public:
     void tick(float seconds);
 
 
-    PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0), int color = 0, bool isShadow = true,bool isTrajectory = true);
+    PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, Renderable* r,const PxVec3 &velocity = PxVec3(0), int color = 0, bool isShadow = true,bool isTrajectory = true);
 
     Puzzles *m_puzzles;
     int m_puzzleSolved;
@@ -122,6 +122,8 @@ public:
 
     virtual void onContactModify(PxContactModifyPair *const pairs, PxU32 count);
 
+    void resetGame();
+
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
     PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, PxMaterial *m, int color = 0, bool isTransparent = false,bool isShadows = true);
@@ -148,8 +150,7 @@ private:
     void setUpRoomFour();
     void setUpRoomFive();
     void setUpRoomSix();
-
-    void resetGame();
+    void setUpRoomSeven();
 
     float m_aspect;
 
@@ -163,6 +164,7 @@ private:
     Obj backboardMesh;
     Obj discMesh;
     Obj appleMesh;
+    Obj appleMeshSmall;
     Obj caveMesh;
     Obj level6Mesh;
 //    Tree triangleMesh;
@@ -181,6 +183,8 @@ private:
     PxRigidDynamic          *m_redBlock;
     PxRigidDynamic          *m_boulder;
     PxRigidDynamic          *m_domino;
+    PxRigidDynamic          *m_apple2;
+    PxRigidStatic           *m_apple;
     PxRigidStatic           *m_hole;
     PxRigidStatic           *m_rim;
     PxRigidStatic           *groundPlane;

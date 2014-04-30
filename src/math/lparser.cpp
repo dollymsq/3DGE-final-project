@@ -166,8 +166,8 @@ QString LParser::testTree()  {
 }
 
 QString LParser::testTreeEnd()  {
-    int steps = 6;
-    QString input = "!(1)F(28)A()e";
+    int steps = 7;
+    QString input = "!(1)F(48)A()e";
     QHash<QChar,QVector<QPair<QString,float> > > *rules = new QHash<QChar,QVector<QPair<QString,float> > >();
     QVector<QPair<QString, float> > firstInsert;
     QPair<QString,float> firstInsertPair;
@@ -179,7 +179,7 @@ QString LParser::testTreeEnd()  {
     QVector<QPair<QString, float> > secondInsert;
     QPair<QString,float> secondInsertPairOne, secondInsertPairTwo;
     secondInsertPairOne.second = 1;
-    secondInsertPairOne.first = "/(137)[+(20)!(1)F(6)A()]-(20)!(1)F(6)A()";
+    secondInsertPairOne.first = "/(137)[+(20)!(1)F(16)A()]-(20)!(1)F(16)A()";
 //    secondInsertPairTwo.second = .5;
 //    secondInsertPairTwo.first = "/(137)-(20)!(1)F(6)A()";
     secondInsert.append(secondInsertPairOne);
