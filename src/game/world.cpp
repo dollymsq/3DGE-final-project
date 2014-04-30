@@ -1,6 +1,5 @@
 #include "world.h"
-#include "assets/tree.h"
-#include "math/lparser.h"
+
 
 PxFilterFlags WorldFilterShader(
     PxFilterObjectAttributes attributes0, PxFilterData filterData0,
@@ -61,6 +60,7 @@ World::World() :
     m_material(NULL),
     m_connection(NULL),
     m_redBlock(NULL),
+    m_playerController(NULL),
     m_stackZ(10.0f),
     m_puzzleSolved(false),
     contactFlag(0)
@@ -151,6 +151,7 @@ void World::init(float aspectRatio)
     m_dyanmicsCount = 40;
     m_dynamicsMessage = "Number of Balls Left: " + QString::number(m_dyanmicsCount);
 
+    m_levelinfo = "Level 1 - Find and trigger the red box!";
     initShaders();
 
 //    m_treeTexId = loadTexture("treebark.jpg");
@@ -213,6 +214,7 @@ void World::draw(QPainter *m_painter)
 
     showSubtitles(m_puzzles->infoToPrint, m_painter);
     showPermanentStat(m_dynamicsMessage, m_painter);
+    showLevelStat(m_levelinfo, m_painter);
 }
 
 PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity)
@@ -232,7 +234,7 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
 //        dynamic->setName("sphere");
         m_renderables.insert(dynamic,&sphereMesh);
         m_scene->addActor(*dynamic);
-        setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eHOLE | FilterGroup::eRED_BOX | FilterGroup::eGROUND | FilterGroup::eSTEPPING_BOX);        
+        setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eHOLE | FilterGroup::eRED_BOX | FilterGroup::eGROUND | FilterGroup::eSTEPPING_BOX);
         m_dynamicsMessage = "Number of Dynamics: " + QString::number(m_dyanmicsCount);
         return dynamic;
     }
@@ -405,6 +407,7 @@ void World::initPhysics(bool interactive)
         m_connection = PxVisualDebuggerExt::createConnection(m_physics->getPvdConnectionManager(), PVD_HOST, 5425, 10);
     }
 
+
     PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
     sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
     m_dispatcher = PxDefaultCpuDispatcherCreate(2);
@@ -413,6 +416,7 @@ void World::initPhysics(bool interactive)
     sceneDesc.simulationEventCallback	= this;
     sceneDesc.contactModifyCallback = this;
     m_scene = m_physics->createScene(sceneDesc);
+
 
     m_material = m_physics->createMaterial(0.5f, 0.5f, 0.6f);
 
@@ -476,6 +480,57 @@ void World::setUpRoomOne()  {
     createDynamicBox(PxTransform(PxVec3(0,  50,  -200.0f)), 10, 50, 2, false, 5);
     createDynamicBox(PxTransform(PxVec3(0,  50,  -220.0f)), 10, 50, 2, false, 6);
     createDynamicBox(PxTransform(PxVec3(0,  50,  -240.0f)), 10, 50, 2, false, 7);
+
+    m_controllerManager = PxCreateControllerManager(*m_scene);
+
+    const float gScaleFactor    	= 1.5f;
+	const float gStandingSize		= 1.0f * gScaleFactor;
+	const float gCrouchingSize		= 0.25f * gScaleFactor;
+	const float gControllerRadius	= 0.3f * gScaleFactor;
+
+    PxCapsuleControllerDesc desc;
+	desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
+    desc.contactOffset			= 0.05f;
+    desc.stepOffset			= 0.01;
+    desc.slopeLimit			= 0.5f;
+    desc.radius				= 5.0f;
+    desc.height				= 10.0f;
+    desc.upDirection = PxVec3(0, 1, 0);
+    desc.material = m_material;
+
+
+//    desc.invisibleWallHeight	= 0.0f;
+//    desc.maxJumpHeight			= 0.0f;
+//    desc.scaleCoeff = 0.0f;
+//    desc.volumeGrowth = 0.0f;
+//    desc.density = 0.0f;
+//    desc.material = m_material;
+
+//	desc.mReportCallback		= this;
+//	desc.mBehaviorCallback		= this;
+
+/*
+ THE DESC IS VALID IF AND ONLY IF
+    if(!PxControllerDesc::isValid())	return false;
+	if(radius<=0.0f)					return false;
+	if(height<=0.0f)					return false;
+	if(stepOffset>height+radius*2.0f)	return false;	// Prevents obvious mistakes
+	return true;
+
+    if(		type!=PxControllerShapeType::eBOX
+		&&	type!=PxControllerShapeType::eCAPSULE)
+		return false;
+	if(scaleCoeff<0.0f)		return false;
+	if(volumeGrowth<1.0f)	return false;
+	if(density<0.0f)		return false;
+	if(slopeLimit<0.0f)		return false;
+	if(stepOffset<0.0f)		return false;
+	if(contactOffset<=0.0f)	return false;
+	if(!material)			return false;
+
+*/
+    std::cout << "CONTROLLER VALID" << " " << desc.isValid() <<  " (should be 1)" << std::endl;
+    m_playerController = m_controllerManager->createController(desc);
 
     //the stepping box
     m_steppingbox = createBox(PxTransform(PxVec3(0,  2,  0)), 10, 2, 10);
@@ -605,7 +660,22 @@ void World::renderGeometry(const PxGeometryHolder& h, Renderable *r)
 
 void World::tick(float seconds)
 {
-    m_camera.update(seconds);
+    if (m_playerController != NULL) {
+        const PxExtendedVec3 &pos = m_playerController->getPosition();
+        m_camera.m_position.x = pos.x;
+        m_camera.m_position.y = pos.y;
+        m_camera.m_position.z = pos.z;
+
+        m_camera.update(seconds);
+        PxVec3 disp(m_camera.m_position.x - pos.x,
+                    m_camera.m_position.y - pos.y,
+                    m_camera.m_position.z - pos.z);
+        disp += PxVec3(0, -0.8f, 0);
+
+//        std::cout << glm::to_string(m_camera.m_position) << std::endl;
+        m_playerController->move(disp, 0.1f, seconds, NULL, NULL);
+    }
+
     stepPhysics(true);
 }
 
@@ -651,13 +721,20 @@ void World::showSubtitles(QString &info, QPainter* m_painter) // eventually fadi
 
 void World::showPermanentStat(QString &info, QPainter* m_painter)
 {
+    m_painter->setPen(QPen(Qt::white));
+    m_painter->drawText(QRect(20,140,600,100), Qt::AlignLeft, "Press space to shoot!");
     m_painter->setPen(QPen(Qt::gray));
     m_painter->setFont(QFont("Monospace", 11));
+
     m_painter->drawText(QRect(20,80,600,100), Qt::AlignLeft, info);
 
+
+}
+
+void World::showLevelStat(QString &info, QPainter* m_painter)
+{
     m_painter->setPen(QPen(Qt::white));
-    m_painter->drawText(QRect(20,120,600,100), Qt::AlignLeft, "Find the red box!");
-    m_painter->drawText(QRect(20,140,600,100), Qt::AlignLeft, "Press space to shoot!");
+    m_painter->drawText(QRect(20,120,600,100), Qt::AlignLeft, info);
 }
 
 glm::mat4 World::getPMatrix()
@@ -743,6 +820,7 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
             else
             {
                 emit m_puzzles->puzzlesSolved("You have hit the hidden box");
+                m_levelinfo = "Level 2 - Use some tricks to push down the domino walls";
 
                 contactFlag = FilterGroup::eRED_BOX;
             }

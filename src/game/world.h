@@ -14,6 +14,8 @@
 #include "assets/obj.h"
 #include "assets/tree.h"
 #include "scene/camera.h"
+#include "assets/tree.h"
+#include "math/lparser.h"
 
 #include <iostream>
 #include "puzzles.h"
@@ -27,7 +29,9 @@
 #define PVD_HOST "127.0.0.1"
 #define MAX_NUM_ACTOR_SHAPES 125
 #include <PxPhysicsAPI.h>
-#include "PxSimulationEventCallback.h"
+#include <characterkinematic/PxController.h>
+#include <characterkinematic/PxControllerBehavior.h>
+#include <PxSimulationEventCallback.h>
 using namespace physx;
 
 struct FilterGroup
@@ -76,8 +80,6 @@ public:
 
     PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0));
 
-    int m_dyanmicsCount;
-    QString m_dynamicsMessage;
     Puzzles *m_puzzles;
     bool m_puzzleSolved;
 
@@ -115,6 +117,11 @@ private:
     void renderGeometry(const PxGeometryHolder& h, Renderable *r);
     void showSubtitles(QString &info, QPainter* m_painter);
     void showPermanentStat(QString &info, QPainter* m_painter);
+    void showLevelStat(QString &info, QPainter* m_painter);
+
+    int m_dyanmicsCount;
+    QString m_dynamicsMessage;
+    QString m_levelinfo;
 
     void setUpRoomOne();
 
@@ -156,7 +163,9 @@ private:
     PxDefaultCpuDispatcher*	m_dispatcher;
     PxScene*				m_scene;
 
-    PxControllerManager*    m_manager;
+    // player camera controller
+    PxControllerManager*    m_controllerManager;
+    PxController*           m_playerController;
 
     PxMaterial*				m_material;
 
