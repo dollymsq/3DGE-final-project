@@ -123,6 +123,8 @@ void World::init(float aspectRatio)
 
 //    createTreeTriMesh(m_tree);
     setUpRoomOne();
+//    setUpRoomTwo();
+
     PxTransform pose;
     pose.p = PxVec3(0,0,0);
     pose.q= PxQuat(0,PxVec3(0,1,0));
@@ -287,8 +289,8 @@ PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal
     PxRigidStatic* body = m_physics->createRigidStatic(t);
     body->attachShape(*shape);
     m_renderables.insert(body,&cubeMesh);
-    if(isTransparent)
-        body->setName("transparent");
+//    if(isTransparent)
+//        body->setName("transparent");
     m_scene->addActor(*body);
 
     if(!isShadows)
@@ -443,7 +445,7 @@ void World::setUpRoomOne()  {
     createBox(PxTransform(PxVec3(-82.5,  60,  -100.0f)), 67.5, 60, 2);
     createBox(PxTransform(PxVec3(0,  15,  -100.0f)), 15, 15, 2);
     createBox(PxTransform(PxVec3(0,  90,  -100.0f)), 15, 30, 2);
-    m_hole = createBox(PxTransform(PxVec3(0,  45,  -100.0f)), 15, 15, 1.0f,true);
+    m_hole = createBox(PxTransform(PxVec3(0,  45,  -100.0f)), 13, 13, 2.0f,true);
     setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
     createBox(PxTransform(PxVec3(82.5,  60,  -100.0f)), 67.5, 60, 2);
 
@@ -628,8 +630,8 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
 //            if(sleeping)
 //                glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 //            else
-//                if(actors[i] == m_hole)
-//                    glColor4f(0.5f, 0.8f, 0.8f, 1.0f);
+                if(actors[i] == m_hole)
+                    glColor4f(0.5f, 0.8f, 0.8f, 1.0f);
             if(toRender)
                 renderGeometry(h,m_renderables[actors[i]]);
             glPopMatrix();
@@ -846,8 +848,7 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
                     emit m_puzzles->puzzlesSolved("You have finished this level");
 //                    m_camera.m_position = glm::vec3(-15.0,  40.0,  -120.0);
                     m_levelinfo = "Level 3 - Find the path to the next door";
-                    setUpRoomTwo();
-
+                    m_scene->removeActor(*m_door,true);
                 }
             }
 //            else if((pairHeader.actors[0] == groundPlane) || (pairHeader.actors[1] == groundPlane))//the ground
@@ -860,6 +861,7 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
             else
             {
                 emit m_puzzles->puzzlesSolved("You have hit the hidden box");
+                m_hole->setName("transparent");
                 m_levelinfo = "Level 2 - Use some tricks to push down the domino walls";
             }
         }
