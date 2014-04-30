@@ -27,7 +27,7 @@ PxFilterFlags WorldFilterShader(
     {
         pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
 
-        if(filterData0.word0 & FilterGroup::eHOLE || filterData1.word0 & FilterGroup::eHOLE)
+        if(filterData0.word0 == FilterGroup::eHOLE || filterData1.word0 == FilterGroup::eHOLE)
             pairFlags |= PxPairFlag::eMODIFY_CONTACTS;
     }
 
@@ -535,11 +535,10 @@ void World::setUpRoomOne()  {
 	const float gControllerRadius	= 0.3f * gScaleFactor;
 
     PxCapsuleControllerDesc desc;
-//    desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
 //	desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
-    desc.position = PxExtendedVec3(0.0f, 0.0f, 0.0f); //1400
+//    desc.position = PxExtendedVec3(0.0f, 0.0f, 0.0f); //1400
 //    desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
-//    desc.position = PxExtendedVec3(1300.0f, 0.0f, 0.0f);
+    desc.position = PxExtendedVec3(500.0f, 0.0f, 0.0f);
     desc.contactOffset			= .50f;
     desc.stepOffset			= 2.0f;
     desc.slopeLimit			= 0.00f;
@@ -654,6 +653,7 @@ void World::setUpRoomThree()  {
     //create pole for bball net
 
 //    m_playerController->setPosition(PxExtendedVec3(550,  10,  -40.0));
+    m_puzzles->level = 3;
 
     PxMaterial * backboardMaterial = m_physics->createMaterial(.95,.95,0);
     PxMaterial * rimMaterial = m_physics->createMaterial(.1,.3,.5);
@@ -662,7 +662,7 @@ void World::setUpRoomThree()  {
     createTriMesh(&backboardMesh,PxTransform(PxVec3(550,70,-80),PxQuat(-1.0f*M_PI/2.0f,PxVec3(0,1,0))),backboardMaterial,9,false,false);
     createTriMesh(&rimMesh,PxTransform(PxVec3(550,70,-80),PxQuat(-1.0f*M_PI/2.0f,PxVec3(0,1,0))),rimMaterial,1,false,false);
     m_rim = createBox(PxTransform(PxVec3(550,70,-73)),1.5,1,1.5,m_material,1,true,false);
-    setupFiltering(m_rim,FilterGroup::eHOLE,FilterGroup::eBALL);
+    setupFiltering(m_rim, FilterGroup::eHOLE, FilterGroup::eBALL);
 
 }
 
