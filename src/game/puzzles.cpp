@@ -15,7 +15,7 @@ void Puzzles::OnePuzzleSolved(QString info)
 {
     if(info == "You have hit the hidden box")
         level = 1;
-    if(level == 5)
+    if(level == 6)
     {
         infoToPrint = info + "\nYou have won the game.";
         qDebug() << infoToPrint;

@@ -538,10 +538,9 @@ void World::setUpRoomOne()  {
 
     PxCapsuleControllerDesc desc;
 //	desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
-    desc.position = PxExtendedVec3(2500.0f, 0.0f, 0.0f); //1400
 //    desc.position = PxExtendedVec3(0.0f, 0.0f, 0.0f); //1400
 //    desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
-    desc.position = PxExtendedVec3(2400.0f, 0.0f, 0.0f);
+    desc.position = PxExtendedVec3(3050.0f, 0.0f, 0.0f);
     desc.contactOffset			= .50f;
     desc.stepOffset			= 2.0f;
     desc.slopeLimit			= 0.00f;
@@ -698,13 +697,14 @@ void World::setUpRoomSix()  {
 void World::setUpRoomSeven()  {
     createBox(PxTransform(PxVec3(2600,-700,0)),100,100,150,m_material);
     createBox(PxTransform(PxVec3(3200,-700,0)),150,100,150,m_material);
-    createBox(PxTransform(PxVec3(2875,-602,0)),175,2,10,m_material);
+//    createBox(PxTransform(PxVec3(2875,-602,0)),175,2,10,m_material);
     //tree
     Tree *t = new Tree();
     m_trees.append(t);
     t->generate(LParser::testTreeEnd());
     createTriMesh(t,PxTransform(PxVec3(3200,-600,0)),m_material);
     m_apple = createTriMesh(&appleMesh,PxTransform(PxVec3(3122,-494,-2)),m_material,1,false, true);
+    setupFiltering(m_apple, FilterGroup::eRED_BOX, FilterGroup::eBALL);
 //    createDynamic(PxTransform(PxVec3(3200,-600,0)),PxSphereGeometry(100),&appleMesh,PxVec3(0),0,false,false);
 }
 
@@ -781,15 +781,15 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                     m_scene->removeActor(*actors[i]);
                     m_balls.remove(actors[i]);
                 }
-                if(glm::distance(appleP,p) < 6) {
-//                    std::cerr << "meow!" << std::endl;
-                    if(m_renderables.contains(m_apple)) {
-                        m_scene->removeActor(*m_apple);
-                        m_renderables.remove(m_apple);
-                        m_apple2 = createDynamic(PxTransform(appleVec),PxSphereGeometry(2),&appleMeshSmall,PxVec3(0),1,true,false);
-                    }
+//                if(glm::distance(appleP,p) < 6) {
+////                    std::cerr << "meow!" << std::endl;
+//                    if(m_renderables.contains(m_apple)) {
+//                        m_scene->removeActor(*m_apple);
+//                        m_renderables.remove(m_apple);
+//                        m_apple2 = createDynamic(PxTransform(appleVec),PxSphereGeometry(2),&appleMeshSmall,PxVec3(0),1,true,false);
+//                    }
 
-                }
+//                }
             }
 
 
@@ -908,6 +908,15 @@ void World::tick(float seconds)
             emit m_puzzles->OnePuzzleSolved("You have dodged the boulder.");
             m_levelinfo = "Level 6 - Final Level";
             m_puzzles->level = 5;
+        }
+        else if(m_puzzleSolved == 4 && pos.x>=3100)
+        {
+            m_puzzleSolved = 5;
+            m_puzzles->level = 6;
+            emit m_puzzles->OnePuzzleSolved("You have finally come to the apple tree.");
+            m_levelinfo = "All Levels Completed!";
+
+
         }
 
 //        std::cerr << glm::to_string(m_camera.m_position) << std::endl;
@@ -1147,7 +1156,25 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
                 m_levelinfo = "Level 4 - The Cave(don't get stuck!)";
                 m_puzzles->level = 3;
             }
+            else if((pairHeader.actors[0] == m_apple) || (pairHeader.actors[1] == m_apple))
+            {
+                emit m_puzzles->puzzlesSolved("You have hit the apple.");
+                createBox(PxTransform(PxVec3(2875,-602,0)),175,2,10,m_material);
 
+                if(m_puzzleSolved!=4)
+                {
+                    PxVec3 appleVec = PxVec3(3122,-494,-2);
+
+                    m_scene->removeActor(*m_apple);
+                    m_renderables.remove(m_apple);
+                    m_apple2 = createDynamic(PxTransform(appleVec),PxSphereGeometry(2),&appleMeshSmall,PxVec3(0),1,true,false);
+                }
+
+                m_levelinfo = "Final Level - You have a bridge now.";
+                m_puzzleSolved = 4;
+
+                m_puzzles->level = 5;
+            }
             else if((pairHeader.actors[0] == m_domino) || (pairHeader.actors[1] == m_domino))
             {
                 if((contactFlag & FilterGroup::eSTEPPING_BOX) && (contactFlag & FilterGroup::eHOLE ))
