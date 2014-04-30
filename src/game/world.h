@@ -105,7 +105,7 @@ private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
     PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false,bool isShadows = true);
     PxRigidDynamic *createDynamicBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false, int colornum = 0);
-    PxRigidStatic *createTriMesh(Renderable *r,QString name,const PxTransform &t,PxMaterial *m_material,bool isTransparent = false);
+    PxRigidStatic *createTriMesh(Renderable *r,const PxTransform &t,PxMaterial *m_material,bool isTransparent = false);
     void createTreeActors(Tree &t);
     void initPhysics(bool interactive);
     void stepPhysics(bool interactive);
@@ -128,8 +128,8 @@ private:
 
     PxU32 contactFlag;//to mark for the last contact actor
 
-    QHash<const char*,Renderable*> m_renderables;
-    QSet<const char*> m_shadows;
+    QHash<const PxActor*,Renderable*> m_renderables;
+    QSet<const PxActor*> m_shadows;
     QVector<Renderable*> m_renderableList;
     QHash<const PxActor*,int> m_color;
 
@@ -140,9 +140,10 @@ private:
     PxRigidStatic           *m_hole;
     PxRigidStatic           *groundPlane;
     PxRigidStatic           *m_steppingbox;
+    PxRigidStatic           *m_door;
     PxActor                 *currentBall;
 
-    Vector4                 pallete[7];
+    Vector4                 pallete[8];
     PxVec3                  m_redBlockPos;
     PxVec3                  m_redBlockOriPos;
 

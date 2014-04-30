@@ -63,12 +63,9 @@ World::World() :
     m_redBlock(NULL),
     m_stackZ(10.0f),
     m_puzzleSolved(false),
-    contactFlag(0),
-    m_renderables(QHash<const char*,Renderable*>())
+    contactFlag(0)
 {
     m_puzzles = new Puzzles();
-    m_renderables["sphere"] = &sphereMesh;
-    m_renderables["cube"] = &cubeMesh;
 
     Vector4 grey    = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
     Vector4 red     = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -78,7 +75,7 @@ World::World() :
     Vector4 blue    = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
     Vector4 indigo  = Vector4(0.3f, 0.0f, 0.5f, 1.0f);
     Vector4 violet  = Vector4(0.56f, 0.0f, 1.0f, 1.0f);
-
+    Vector4 darkgrey = Vector4(.2f,.2f,.2f,1.0f);
     pallete[0]= grey;
     pallete[1]= red;
     pallete[2]= orange;
@@ -87,6 +84,7 @@ World::World() :
     pallete[5]= blue;
     pallete[6]= indigo;
     pallete[7]= violet;
+    pallete[8]= darkgrey;
 
 }
 
@@ -231,7 +229,8 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
         PxRigidDynamic* dynamic = PxCreateDynamic(*m_physics, t, geometry, *m_material, 10.0f);
         dynamic->setAngularDamping(0.5f);
         dynamic->setLinearVelocity(velocity);
-        dynamic->setName("sphere");
+//        dynamic->setName("sphere");
+        m_renderables.insert(dynamic,&sphereMesh);
         m_scene->addActor(*dynamic);
         setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eHOLE | FilterGroup::eRED_BOX | FilterGroup::eGROUND | FilterGroup::eSTEPPING_BOX);        
         m_dynamicsMessage = "Number of Dynamics: " + QString::number(m_dyanmicsCount);
@@ -257,7 +256,8 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 
                 body->attachShape(*shape);
 			    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
-                body->setName("cube");
+
+                m_renderables.insert(body,&cubeMesh);
                 m_scene->addActor(*body);
                 if (i == 2 && j == 1 && k == 1) {
                     if (!m_redBlock)
@@ -282,16 +282,13 @@ PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal
 
     PxRigidStatic* body = m_physics->createRigidStatic(t);
     body->attachShape(*shape);
-    QString name = "cube";
-    name.append(QString::number(m_renderables.size()));
-    body->setName(name.toStdString().c_str());
-    m_renderables.insert(body->getName(),&cubeMesh);
+    m_renderables.insert(body,&cubeMesh);
     if(isTransparent)
         body->setName("transparent");
     m_scene->addActor(*body);
 
     if(!isShadows)
-        m_shadows.insert(body->getName());
+        m_shadows.insert(body);
     shape->release();
     return body;
 }
@@ -302,11 +299,9 @@ PxRigidDynamic* World::createDynamicBox(const PxTransform& t, PxReal x, PxReal y
 
     PxRigidDynamic* body = m_physics->createRigidDynamic(t);
     body->attachShape(*shape);
-    body->setName("cube");
     PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
-    if(isTransparent)
-        body->setName("transparent");
-
+    if(!isTransparent)
+        m_renderables.insert(body,&cubeMesh);
     m_scene->addActor(*body);
     m_color[body] = colornum;
 
@@ -314,20 +309,9 @@ PxRigidDynamic* World::createDynamicBox(const PxTransform& t, PxReal x, PxReal y
     return body;
 }
 
-PxRigidStatic* World::createTriMesh(Renderable *r,QString name,const PxTransform &t,PxMaterial *m_material,bool isTransparent)  {
+PxRigidStatic* World::createTriMesh(Renderable *r,const PxTransform &t,PxMaterial *m_material,bool isTransparent)  {
     QVector<PxVec3> verts = r->getVerts();
     QVector<PxU32> inds = r->getInds();
-//    QVector<glm::vec3> glmVerts = o.vertices;
-//    for(int i = 0; i < glmVerts.size(); i++)  {
-//        glm::vec3 currentVec = glmVerts[i];
-//        verts.append(PxVec3(currentVec.x,currentVec.y,currentVec.z));
-//    }
-//    QVector<Obj::Triangle> objInds = o.triangles;
-//    for(int i = 0; i < objInds.size(); i++)  {
-//        inds.append(objInds[i].a.vertex);
-//        inds.append(objInds[i].b.vertex);
-//        inds.append(objInds[i].c.vertex);
-//    }
 
     PxVec3* vertData = verts.data();
     PxU32* indData = inds.data();
@@ -363,11 +347,8 @@ PxRigidStatic* World::createTriMesh(Renderable *r,QString name,const PxTransform
 
     body->attachShape(*triangleMeshShape);
 
-    body->setName(name.toStdString().c_str());
-    printf("name is: %s", body->getName());
     if(!isTransparent)
-        m_renderables[body->getName()] = r;
-    std::cout << "contains? " << m_renderables.contains(body->getName()) << std::endl;
+        m_renderables[body] = r;
     m_scene->addActor(*body);
 
     triangleMeshShape->release();
@@ -464,30 +445,37 @@ void World::setUpRoomOne()  {
     //the back wall
     createBox(PxTransform(PxVec3(0,60,100.0f)),150,60,2,false,false);
 
+    //the left wall
+    createBox(PxTransform(PxVec3(-150.0f,60,0)),2,60,100);
+
+    //the front wall
+    createBox(PxTransform(PxVec3(150.0f,60,-52.5f)),2,60,45);
+    createBox(PxTransform(PxVec3(150.0f,60,52.5f)),2,60,45);
+    createBox(PxTransform(PxVec3(150.0f,90,0)),2,30,7.5);
+    m_door = createBox(PxTransform(PxVec3(150.0f,30,0)),2,30,7.5);
+    m_color.insert(m_door,8);
+
     //trees
     Tree *t1 = new Tree();
     t1->generate(LParser::testTree());
-    createTriMesh(t1,"tree1",PxTransform(PxVec3(40,0,0),PxQuat(0,PxVec3(0,1,0))),m_material);
+    createTriMesh(t1,PxTransform(PxVec3(50,0,0),PxQuat(0,PxVec3(0,1,0))),m_material);
     m_renderableList.append(t1);
-    //create domino
-    m_domino = createDynamicBox(PxTransform(PxVec3(-15,  30,  -120.0f)), 10, 30, 2, false, 1);
-    setupFiltering(m_domino, FilterGroup::eGROUND, FilterGroup::eBALL);
-    createDynamicBox(PxTransform(PxVec3(-15,  40,  -140.0f)), 10, 40, 2, false, 2);
-    createDynamicBox(PxTransform(PxVec3(-15,  50,  -160.0f)), 10, 50, 2, false, 3);
-    createDynamicBox(PxTransform(PxVec3(-15,  50,  -180.0f)), 10, 50, 2, false, 4);
-    createDynamicBox(PxTransform(PxVec3(-15,  50,  -200.0f)), 10, 50, 2, false, 5);
-    createDynamicBox(PxTransform(PxVec3(-15,  50,  -220.0f)), 10, 50, 2, false, 6);
-    createDynamicBox(PxTransform(PxVec3(-15,  50,  -240.0f)), 10, 50, 2, false, 7);
 
     Tree *t2 = new Tree();
     t2->generate(LParser::testTree());
-    createTriMesh(t2,"tree2",PxTransform(PxVec3(-60,0,20),PxQuat(0,PxVec3(0,1,0))),m_material);
+    createTriMesh(t2,PxTransform(PxVec3(-60,0,20),PxQuat(0,PxVec3(0,1,0))),m_material);
     m_renderableList.append(t2);
 
-//    Tree *t3 = new Tree();
-//    t3->generate(LParser::testTree());
-//    createTriMesh(t3,"tree3",PxTransform(PxVec3(80,0,50),PxQuat(0,PxVec3(0,1,0))),m_material);
-//    m_renderableList.append(t3);
+
+    //create domino
+    m_domino = createDynamicBox(PxTransform(PxVec3(0,  30,  -120.0f)), 10, 30, 2, false, 1);
+    setupFiltering(m_domino, FilterGroup::eGROUND, FilterGroup::eBALL);
+    createDynamicBox(PxTransform(PxVec3(0,  40,  -140.0f)), 10, 40, 2, false, 2);
+    createDynamicBox(PxTransform(PxVec3(0,  50,  -160.0f)), 10, 50, 2, false, 3);
+    createDynamicBox(PxTransform(PxVec3(0,  50,  -180.0f)), 10, 50, 2, false, 4);
+    createDynamicBox(PxTransform(PxVec3(0,  50,  -200.0f)), 10, 50, 2, false, 5);
+    createDynamicBox(PxTransform(PxVec3(0,  50,  -220.0f)), 10, 50, 2, false, 6);
+    createDynamicBox(PxTransform(PxVec3(0,  50,  -240.0f)), 10, 50, 2, false, 7);
 
     //the stepping box
     m_steppingbox = createBox(PxTransform(PxVec3(0,  2,  0)), 10, 2, 10);
@@ -517,9 +505,10 @@ void World::cleanupPhysics(bool interactive)
 void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shadows)
 {
 //    glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
-    bool tempShadows = shadows;
+//    std::cout << "shadows first: " << tempShadows << std::endl;
     PxShape* shapes[MAX_NUM_ACTOR_SHAPES];
 //    std::cout << "number of actors: " << numActors << std::endl;
+    bool tempShadows = shadows;
     for(PxU32 i=0;i<numActors;i++)
     {
         tempShadows = shadows;
@@ -540,25 +529,22 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
             glMultMatrixf((float*)&shapePose);
             if (actors[i] == m_redBlock)
                 glColor4f(0.9f, 0, 0, 1.0f);
-            else if (!m_renderables.contains(actors[i]->getName()))// actors[i]->getName() == "transparent" ||
+            else if (!m_renderables.contains(actors[i]) || actors[i]->getName() == "transparent")// actors[i]->getName() == "transparent" ||
                 toRender = false;
             else if (m_color.contains(actors[i]))
                 glColor4fv(pallete[m_color[actors[i]]].xyzw );
             else
                 glColor4f(0.8f, 0.8f, 0.8f, 1.0f);
-            if(m_shadows.contains(actors[i]->getName()))
-                    std::cout << "actor " << actors[i]->getName() << " is in shadows" << std::endl;
-            if(shapePose.getPosition().y < 0 || m_shadows.contains(actors[i]->getName()));
-//                std::cout << actors[i]->getName() << std::endl;
+            if(shapePose.getPosition().y < 0 || m_shadows.contains(actors[i]))
                 tempShadows = false;
 //            if(sleeping)
 //                glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 //            else
             if(toRender)
-                renderGeometry(h,m_renderables[actors[i]->getName()]);
+                renderGeometry(h,m_renderables[actors[i]]);
             glPopMatrix();
 
-            // notice this are really fake shadows
+            // notice these are really fake shadows
             if(tempShadows && toRender)
             {
                 const PxVec3 shadowDir(0.0f, -0.7071067f, -0.7071067f);
@@ -568,7 +554,7 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                 glMultMatrixf((float*)&shapePose);
                 glDisable(GL_LIGHTING);
                 glColor4f(0.0f, 0.05f, 0.08f, 1);
-                renderGeometry(h,m_renderables[actors[i]->getName()]);
+                renderGeometry(h,m_renderables[actors[i]]);
                 glEnable(GL_LIGHTING);
                 glPopMatrix();
             }
