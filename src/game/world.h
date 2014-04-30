@@ -81,6 +81,7 @@ public:
     void init(float aspectRatio);
     void draw(QPainter *m_painter);
     void tick(float seconds);
+    void resetScene(float aspectRatio);
 
 
     PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0), int color = 0);

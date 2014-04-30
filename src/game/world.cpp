@@ -68,11 +68,10 @@ World::World() :
     m_redBlock(NULL),
     m_playerController(NULL),
     m_stackZ(10.0f),
-    m_puzzleSolved(false),
+    m_puzzleSolved(0),
     contactFlag(0)
 {
     m_puzzles = new Puzzles();
-    m_puzzles->level = 0;
 
     Vector4 grey    = Vector4(0.9f, 0.9f, 0.9f, 1.0f);
     Vector4 red     = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -109,6 +108,18 @@ World::~World()
     for(int i = 0; i < m_trees.size(); i++)  {
         delete m_trees.at(i);
     }
+}
+
+void World::resetScene(float aspectRatio)
+{
+//    m_scene->release();
+//    m_scene = m_physics->createScene(sceneDesc);
+
+//    delete m_puzzles;
+//    m_puzzles = new Puzzles();
+//    init(aspectRatio);
+//    m_puzzleSolved = 0;
+//    contactFlag = 0;
 }
 
 void World::init(float aspectRatio)
@@ -448,7 +459,6 @@ void World::initPhysics(bool interactive)
     sceneDesc.contactModifyCallback = this;
     m_scene = m_physics->createScene(sceneDesc);
 
-
     m_material = m_physics->createMaterial(0.5f, 0.5f, 0.8f);
 
 //    groundPlane = PxCreatePlane(*m_physics, PxPlane(0,1,0,0), *m_material);
@@ -531,8 +541,8 @@ void World::setUpRoomOne()  {
 	const float gControllerRadius	= 0.3f * gScaleFactor;
 
     PxCapsuleControllerDesc desc;
-//    desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
-    desc.position = PxExtendedVec3(1300.0f, 0.0f, 0.0f);
+    desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
+//    desc.position = PxExtendedVec3(1300.0f, 0.0f, 0.0f);
     desc.contactOffset			= .50f;
     desc.stepOffset			= 2.0f;
     desc.slopeLimit			= 0.00f;

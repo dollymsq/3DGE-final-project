@@ -8,6 +8,7 @@ Puzzles::Puzzles()
     QObject::connect(this,SIGNAL(puzzlesSolved(QString)),
                      this, SLOT(OnePuzzleSolved(QString)));
     infoToPrint = " ";
+    level = 0;
 }
 
 
