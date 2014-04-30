@@ -538,9 +538,9 @@ void World::setUpRoomOne()  {
 
     PxCapsuleControllerDesc desc;
 //	desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
-//    desc.position = PxExtendedVec3(0.0f, 0.0f, 0.0f); //1400
+    desc.position = PxExtendedVec3(0.0f, 0.0f, 0.0f); //1400
 //    desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
-    desc.position = PxExtendedVec3(3050.0f, 0.0f, 0.0f);
+//    desc.position = PxExtendedVec3(3050.0f, 0.0f, 0.0f);
     desc.contactOffset			= .50f;
     desc.stepOffset			= 2.0f;
     desc.slopeLimit			= 0.00f;
