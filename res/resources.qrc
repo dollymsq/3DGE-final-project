@@ -9,5 +9,10 @@
         <file>shaders/simple.vert</file>
         <file>meshes/cylinder_meshBetter.obj</file>
         <file>textures/treebark.jpg</file>
+        <file>meshes/rim.obj</file>
+        <file>meshes/cave_mesh.obj</file>
+        <file>meshes/backboard.obj</file>
+        <file>meshes/apple.obj</file>
+        <file>meshes/disc.obj</file>
     </qresource>
 </RCC>

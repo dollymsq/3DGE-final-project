@@ -8,13 +8,15 @@ Puzzles::Puzzles()
     QObject::connect(this,SIGNAL(puzzlesSolved(QString)),
                      this, SLOT(OnePuzzleSolved(QString)));
     infoToPrint = " ";
+    level = 0;
 }
 
 
 void Puzzles::OnePuzzleSolved(QString info)
 {
-    solvedPuzzlesNumber++;
-    if(solvedPuzzlesNumber == 5)
+    if(info == "You have hit the hidden box")
+        level = 1;
+    if(level == 5)
     {
         infoToPrint = info + "\nYou have won the game.";
         qDebug() << infoToPrint;

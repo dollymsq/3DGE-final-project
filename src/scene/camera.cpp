@@ -74,5 +74,5 @@ void Camera::update(float seconds)
     m_lookAt += m_position;
 
     vMatrix = glm::lookAt(m_position, m_lookAt, m_up);
-    vMatrix = glm::translate(vMatrix, glm::vec3(0, -20, 0));
+    vMatrix = glm::translate(vMatrix, glm::vec3(0, -10, 0));
 }
