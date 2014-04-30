@@ -451,7 +451,7 @@ void World::setUpRoomOne()  {
     createBox(PxTransform(PxVec3(-82.5,  60,  -100.0f)), 67.5, 60, 2);
     createBox(PxTransform(PxVec3(0,  15,  -100.0f)), 15, 15, 2);
     createBox(PxTransform(PxVec3(0,  90,  -100.0f)), 15, 30, 2);
-    m_hole = createBox(PxTransform(PxVec3(0,  45,  -100.0f)), 17.5, 17.5, 1.0f);
+    m_hole = createBox(PxTransform(PxVec3(0,  45,  -100.0f)), 17.5, 17.5, 1.0f,0,true,false);
     setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
     createBox(PxTransform(PxVec3(82.5,  60,  -100.0f)), 67.5, 60, 2);
 
