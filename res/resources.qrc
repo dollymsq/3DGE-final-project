@@ -16,5 +16,6 @@
         <file>meshes/disc.obj</file>
         <file>meshes/m_caveMeshLessTris.obj</file>
         <file>meshes/level5Mesh.obj</file>
+        <file>meshes/appleSmall.obj</file>
     </qresource>
 </RCC>
