@@ -86,7 +86,7 @@ public:
     PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0), int color = 0);
 
     Puzzles *m_puzzles;
-    bool m_puzzleSolved;
+    int m_puzzleSolved;
 
     void shootDynamic();
     void enableForward(bool flag);
