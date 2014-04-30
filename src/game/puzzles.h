@@ -12,6 +12,7 @@ public:
     Puzzles();
 
     int collisioncount;
+    int level;
     int solvedPuzzlesNumber;
     QString infoToPrint;
 

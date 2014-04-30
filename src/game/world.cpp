@@ -71,6 +71,25 @@ World::World() :
     m_puzzles = new Puzzles();
     m_renderables["sphere"] = &sphereMesh;
     m_renderables["cube"] = &cubeMesh;
+
+    Vector4 grey    = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+    Vector4 red     = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+    Vector4 orange  = Vector4(1.0f, 0.5f, 0.0f, 1.0f);
+    Vector4 yellow  = Vector4(1.0f, 1.0f, 0.0f, 1.0f);
+    Vector4 green   = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+    Vector4 blue    = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+    Vector4 indigo  = Vector4(0.3f, 0.0f, 0.5f, 1.0f);
+    Vector4 violet  = Vector4(0.56f, 0.0f, 1.0f, 1.0f);
+
+    pallete[0]= grey;
+    pallete[1]= red;
+    pallete[2]= orange;
+    pallete[3]= yellow;
+    pallete[4]= green;
+    pallete[5]= blue;
+    pallete[6]= indigo;
+    pallete[7]= violet;
+
 }
 
 World::~World()
@@ -212,8 +231,7 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
         dynamic->setLinearVelocity(velocity);
         dynamic->setName("sphere");
         m_scene->addActor(*dynamic);
-        setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eHOLE | FilterGroup::eRED_BOX | FilterGroup::eGROUND | FilterGroup::eSTEPPING_BOX);
-
+        setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eHOLE | FilterGroup::eRED_BOX | FilterGroup::eGROUND | FilterGroup::eSTEPPING_BOX);        
         m_dynamicsMessage = "Number of Dynamics: " + QString::number(m_dyanmicsCount);
         return dynamic;
     }
@@ -269,7 +287,7 @@ PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal
     return body;
 }
 
-PxRigidDynamic* World::createDynamicBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent)
+PxRigidDynamic* World::createDynamicBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent, int colornum)
 {
     PxShape* shape = m_physics->createShape(PxBoxGeometry(x, y, z), *m_material, true);
 
@@ -281,6 +299,7 @@ PxRigidDynamic* World::createDynamicBox(const PxTransform& t, PxReal x, PxReal y
         body->setName("transparent");
 
     m_scene->addActor(*body);
+    m_color[body] = colornum;
 
     shape->release();
     return body;
@@ -430,10 +449,14 @@ void World::initPhysics(bool interactive)
     setupFiltering(m_steppingbox, FilterGroup::eSTEPPING_BOX, FilterGroup::eBALL);
 
     //create domino
-    m_domino = createDynamicBox(PxTransform(PxVec3(-15,  30,  -120.0f)), 10, 30, 2);
+    m_domino = createDynamicBox(PxTransform(PxVec3(-15,  30,  -120.0f)), 10, 30, 2, false, 1);
     setupFiltering(m_domino, FilterGroup::eGROUND, FilterGroup::eBALL);
-    createDynamicBox(PxTransform(PxVec3(-15,  40,  -140.0f)), 10, 40, 2);
-    createDynamicBox(PxTransform(PxVec3(-15,  50,  -160.0f)), 10, 50, 2);
+    createDynamicBox(PxTransform(PxVec3(-15,  40,  -140.0f)), 10, 40, 2, false, 2);
+    createDynamicBox(PxTransform(PxVec3(-15,  50,  -160.0f)), 10, 50, 2, false, 3);
+    createDynamicBox(PxTransform(PxVec3(-15,  50,  -180.0f)), 10, 50, 2, false, 4);
+    createDynamicBox(PxTransform(PxVec3(-15,  50,  -200.0f)), 10, 50, 2, false, 5);
+    createDynamicBox(PxTransform(PxVec3(-15,  50,  -220.0f)), 10, 50, 2, false, 6);
+    createDynamicBox(PxTransform(PxVec3(-15,  50,  -240.0f)), 10, 50, 2, false, 7);
 
     if(!interactive)
         createDynamic(PxTransform(PxVec3(0,40,100)), PxSphereGeometry(10), PxVec3(0,-50,-100));
@@ -485,7 +508,8 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                 glColor4f(0.9f, 0, 0, 1.0f);
             else if (!m_renderables.contains(actors[i]->getName()))// actors[i]->getName() == "transparent" ||
                 toRender = false;
-
+            else if (m_color.contains(actors[i]))
+                glColor4fv(pallete[m_color[actors[i]]].xyzw );
             else
                 glColor4f(0.8f, 0.8f, 0.8f, 1.0f);
 //            if(sleeping)
@@ -662,10 +686,15 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
 //                    mMinesToExplode.push_back(mine);
 //                break;
                 contactFlag |= FilterGroup::eHOLE ;
-                if(contactFlag & FilterGroup::eSTEPPING_BOX)
-                    emit m_puzzles->puzzlesSolved("You have used the stepping box to pass through the hole");
+                if(m_puzzles->level == 1)
+                {
+                    if(contactFlag & FilterGroup::eSTEPPING_BOX)
+                        emit m_puzzles->puzzlesSolved("You have used the stepping box to pass through the hole");
+                    else
+                        emit m_puzzles->puzzlesSolved("You have passed through the hole");
+                }
                 else
-                    emit m_puzzles->puzzlesSolved("You have passed through the hole");
+                    emit m_puzzles->puzzlesSolved("Find and hit the red box first!");
 
             }
             else if((pairHeader.actors[0] == m_domino) || (pairHeader.actors[1] == m_domino))
@@ -695,9 +724,12 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
 
 void World::onContactModify(PxContactModifyPair *const pairs, PxU32 count)
 {
-    for(PxU32 i=0; i< count; i++)
+    if(m_puzzles->level > 0 )
     {
-        pairs->contacts.ignore(i);
+        for(PxU32 i=0; i< count; i++)
+        {
+            pairs->contacts.ignore(i);
+        }
     }
 }
 
