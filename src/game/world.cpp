@@ -511,7 +511,9 @@ void World::setUpRoomOne()  {
     desc.height				= 20.0f;
     desc.upDirection = PxVec3(0, 1, 0);
     desc.material = m_material;
-
+	desc.behaviorCallback		= this;
+    desc.reportCallback = this;
+//    desc.
 
 //    desc.invisibleWallHeight	= 0.0f;
 //    desc.maxJumpHeight			= 0.0f;
@@ -521,7 +523,6 @@ void World::setUpRoomOne()  {
 //    desc.material = m_material;
 
 //	desc.mReportCallback		= this;
-//	desc.mBehaviorCallback		= this;
 
 /*
  THE DESC IS VALID IF AND ONLY IF
@@ -780,7 +781,7 @@ void World::showPermanentStat(QString &info, QPainter* m_painter)
 
 }
 
-void World::showLevelStat(QString &info, QPainter* m_painter)
+void World:: showLevelStat(QString &info, QPainter* m_painter)
 {
     m_painter->setPen(QPen(Qt::white));
     m_painter->drawText(QRect(20,120,600,100), Qt::AlignLeft, info);
@@ -878,6 +879,38 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
             }
         }
     }
+}
+
+void World::onShapeHit(const PxControllerShapeHit &hit)
+{
+    std::cout << hit.actor->getName() << std::endl;
+}
+
+void World::onControllerHit(const PxControllersHit &hit)
+{
+//      std::cout << hit.controller->getName() << std::endl;
+}
+
+void World::onObstacleHit(const PxControllerObstacleHit &hit)
+{
+    std::cout << hit.worldPos.x << std::endl;
+}
+
+PxControllerBehaviorFlags World::getBehaviorFlags(const PxShape &shape, const PxActor &actor)
+{
+    std::cout << "behavior actor";
+    std::cout << actor.getName() << std::endl;
+}
+
+PxControllerBehaviorFlags World::getBehaviorFlags(const PxController &controller)
+{
+
+}
+
+PxControllerBehaviorFlags World::getBehaviorFlags(const PxObstacle &obstacle)
+{
+    std::cout << "behavrio obstacles";
+    std::cout << obstacle.getType() << std::endl;
 }
 
 void World::onContactModify(PxContactModifyPair *const pairs, PxU32 count)
