@@ -66,12 +66,7 @@ World::World() :
     contactFlag(0)
 {
     m_puzzles = new Puzzles();
-<<<<<<< HEAD
     m_puzzles->level = 0;
-    m_renderables["sphere"] = &sphereMesh;
-    m_renderables["cube"] = &cubeMesh;
-=======
->>>>>>> 8beb1c1f1f72fe048f5d4e514522a306c5c7c62e
 
     Vector4 grey    = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
     Vector4 red     = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -621,14 +616,8 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
                 glColor4fv(pallete[m_color[actors[i]]].xyzw );
             else
                 glColor4f(0.8f, 0.8f, 0.8f, 1.0f);
-<<<<<<< HEAD
-            if(m_shadows.contains(actors[i]->getName()))
-//                    std::cout << "actor " << actors[i]->getName() << " is in shadows" << std::endl;
-            if(shapePose.getPosition().y < 0 || m_shadows.contains(actors[i]->getName()));
-//                std::cout << actors[i]->getName() << std::endl;
-=======
+
             if(shapePose.getPosition().y < 0 || m_shadows.contains(actors[i]))
->>>>>>> 8beb1c1f1f72fe048f5d4e514522a306c5c7c62e
                 tempShadows = false;
 //            if(sleeping)
 //                glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
