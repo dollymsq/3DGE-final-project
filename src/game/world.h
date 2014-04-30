@@ -21,7 +21,7 @@
 #include <QElapsedTimer>
 
 #include <QGLShaderProgram>
-
+#include <math/vector.h>
 
 // connection for physx debugger
 #define PVD_HOST "127.0.0.1"
@@ -40,9 +40,25 @@ struct FilterGroup
         eHOLE           = (1 << 3),
         eSTEPPING_BOX   = (1 << 4),
         eGROUND         = (1 << 5),
-
         //
     };
+};
+
+struct Color
+{
+    enum Enum
+    {
+        cGrey       = 0,
+        cRED   		= 1,
+        cORANGE		= 2,
+        cYELLOW		= 3,
+        cGREEN      = 4,
+        cBLUE       = 5,
+        cINDIGO     = 6,
+        cVIOLET     = 7
+        //
+    };
+
 };
 
 class World : public QObject, protected QOpenGLFunctions, public PxSimulationEventCallback, public PxContactModifyCallback
@@ -88,6 +104,7 @@ public:
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
     PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false,bool isShadows = true);
+    PxRigidDynamic *createDynamicBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false, int colornum = 0);
     PxRigidStatic *createTriMesh(Renderable *r,QString name,const PxTransform &t,PxMaterial *m_material,bool isTransparent = false);
     void createTreeActors(Tree &t);
     void initPhysics(bool interactive);
@@ -114,15 +131,18 @@ private:
     QHash<const char*,Renderable*> m_renderables;
     QSet<const char*> m_shadows;
     QVector<Renderable*> m_renderableList;
+    QHash<const PxActor*,int> m_color;
 
     PxCooking *m_cooking;
 
     PxRigidDynamic          *m_redBlock;
+    PxRigidDynamic          *m_domino;
     PxRigidStatic           *m_hole;
     PxRigidStatic           *groundPlane;
     PxRigidStatic           *m_steppingbox;
+    PxActor                 *currentBall;
 
-
+    Vector4                 pallete[7];
     PxVec3                  m_redBlockPos;
     PxVec3                  m_redBlockOriPos;
 
