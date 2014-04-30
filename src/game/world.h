@@ -170,6 +170,7 @@ private:
     PxRigidDynamic          *m_redBlock;
     PxRigidDynamic          *m_domino;
     PxRigidStatic           *m_hole;
+    PxRigidStatic           *m_rim;
     PxRigidStatic           *groundPlane;
     PxRigidStatic           *m_steppingbox;
     PxRigidStatic           *m_door;
