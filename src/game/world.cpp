@@ -481,6 +481,11 @@ void World::setUpRoomOne()  {
     createDynamicBox(PxTransform(PxVec3(0,  50,  -220.0f)), 10, 50, 2, false, 6);
     createDynamicBox(PxTransform(PxVec3(0,  50,  -240.0f)), 10, 50, 2, false, 7);
 
+    //create spheres
+    for(int i = 0; i < 10; i++)  {
+        createDynamic(PxTransform(Calc::random(-50,50),2,Calc::random(-50,50)),PxSphereGeometry(3.0f));
+    }
+
     m_controllerManager = PxCreateControllerManager(*m_scene);
 
     const float gScaleFactor    	= 1.5f;

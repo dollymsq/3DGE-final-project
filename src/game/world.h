@@ -16,6 +16,7 @@
 #include "scene/camera.h"
 #include "assets/tree.h"
 #include "math/lparser.h"
+#include "math/calc.h"
 
 #include <iostream>
 #include "puzzles.h"
