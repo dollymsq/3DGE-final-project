@@ -218,7 +218,7 @@ void World::draw(QPainter *m_painter)
     showLevelStat(m_levelinfo, m_painter);
 }
 
-PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity)
+PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity,int color)
 {
     if(m_dyanmicsCount <= 0)
     {
@@ -234,6 +234,7 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
         dynamic->setLinearVelocity(velocity);
 //        dynamic->setName("sphere");
         m_renderables.insert(dynamic,&sphereMesh);
+        m_color.insert(dynamic,color);
         m_scene->addActor(*dynamic);
         setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eHOLE | FilterGroup::eRED_BOX | FilterGroup::eGROUND | FilterGroup::eSTEPPING_BOX);
         m_dynamicsMessage = "Number of Dynamics: " + QString::number(m_dyanmicsCount);
@@ -261,6 +262,7 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 			    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
 
                 m_renderables.insert(body,&cubeMesh);
+                m_color.insert(body,0);
                 m_scene->addActor(*body);
                 if (i == 2 && j == 1 && k == 1) {
                     if (!m_redBlock)
@@ -279,13 +281,14 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 
 
 
-PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent, bool isShadows)
+PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, int color, bool isTransparent, bool isShadows)
 {
     PxShape* shape = m_physics->createShape(PxBoxGeometry(x, y, z), *m_material, true);
 
     PxRigidStatic* body = m_physics->createRigidStatic(t);
     body->attachShape(*shape);
     m_renderables.insert(body,&cubeMesh);
+    m_color.insert(body,color);
     if(isTransparent)
         body->setName("transparent");
     m_scene->addActor(*body);
@@ -296,7 +299,7 @@ PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal
     return body;
 }
 
-PxRigidDynamic* World::createDynamicBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent, int colornum)
+PxRigidDynamic* World::createDynamicBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent, bool isShadows, int colornum)
 {
     PxShape* shape = m_physics->createShape(PxBoxGeometry(x, y, z), *m_material, true);
 
@@ -305,6 +308,8 @@ PxRigidDynamic* World::createDynamicBox(const PxTransform& t, PxReal x, PxReal y
     PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
     if(!isTransparent)
         m_renderables.insert(body,&cubeMesh);
+    if(!isShadows)
+        m_shadows.insert(body);
     m_scene->addActor(*body);
     m_color[body] = colornum;
 
@@ -312,7 +317,7 @@ PxRigidDynamic* World::createDynamicBox(const PxTransform& t, PxReal x, PxReal y
     return body;
 }
 
-PxRigidStatic* World::createTriMesh(Renderable *r,const PxTransform &t,PxMaterial *m_material,bool isTransparent)  {
+PxRigidStatic* World::createTriMesh(Renderable *r,const PxTransform &t,PxMaterial *m_material,int color,bool isTransparent,bool isShadow)  {
     QVector<PxVec3> verts = r->getVerts();
     QVector<PxU32> inds = r->getInds();
 
@@ -352,6 +357,9 @@ PxRigidStatic* World::createTriMesh(Renderable *r,const PxTransform &t,PxMateria
 
     if(!isTransparent)
         m_renderables[body] = r;
+    if(!isShadow)
+        m_shadows.insert(body);
+    m_color.insert(body,color);
     m_scene->addActor(*body);
 
     triangleMeshShape->release();
@@ -442,12 +450,12 @@ void World::setUpRoomOne()  {
     createBox(PxTransform(PxVec3(-82.5,  60,  -100.0f)), 67.5, 60, 2);
     createBox(PxTransform(PxVec3(0,  15,  -100.0f)), 15, 15, 2);
     createBox(PxTransform(PxVec3(0,  90,  -100.0f)), 15, 30, 2);
-    m_hole = createBox(PxTransform(PxVec3(0,  45,  -100.0f)), 15, 15, 1.0f,true);
+    m_hole = createBox(PxTransform(PxVec3(0,  45,  -100.0f)), 17.5, 17.5, 1.0f);
     setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
     createBox(PxTransform(PxVec3(82.5,  60,  -100.0f)), 67.5, 60, 2);
 
     //the back wall
-    createBox(PxTransform(PxVec3(0,60,100.0f)),150,60,2,false,false);
+    createBox(PxTransform(PxVec3(0,60,100.0f)),150,60,2,0,false,false);
 
     //the left wall
     createBox(PxTransform(PxVec3(-150.0f,60,0)),2,60,100);
@@ -483,7 +491,7 @@ void World::setUpRoomOne()  {
 
     //create spheres
     for(int i = 0; i < 10; i++)  {
-        createDynamic(PxTransform(Calc::random(-50,50),2,Calc::random(-50,50)),PxSphereGeometry(3.0f));
+        createDynamic(PxTransform(Calc::random(-90,90),2,Calc::random(-90,90)),PxSphereGeometry(3.0f));
     }
 
     m_controllerManager = PxCreateControllerManager(*m_scene);
@@ -561,7 +569,7 @@ void World::setUpRoomTwo()  {
     createBox(PxTransform(PxVec3(-82.5,  60,  -291.0f)), 67.5, 60, 1);
     createBox(PxTransform(PxVec3(0,  15,  -291.0f)), 15, 15, 1);
     createBox(PxTransform(PxVec3(0,  90,  -291.0f)), 15, 30, 1);
-    m_hole = createBox(PxTransform(PxVec3(0,  45,  -291.0f)), 15, 15, 1.0f,true);
+    m_hole = createBox(PxTransform(PxVec3(0,  45,  -291.0f)), 15, 15, 1.0f,false);
     setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
     createBox(PxTransform(PxVec3(82.5,  60,  -291.0f)), 67.5, 60, 1);
 

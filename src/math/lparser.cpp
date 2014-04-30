@@ -134,7 +134,7 @@ QString LParser::rewrite(QHash<QChar,QVector<QPair<QString,float> > > *rules, QS
 
 QString LParser::testTree()  {
     int steps = 10;
-    QString input = "!(1)F(14)A()e";
+    QString input = "!(1)F(28)A()e";
     QHash<QChar,QVector<QPair<QString,float> > > *rules = new QHash<QChar,QVector<QPair<QString,float> > >();
     QVector<QPair<QString, float> > firstInsert;
     QPair<QString,float> firstInsertPair;
@@ -167,7 +167,7 @@ QString LParser::testTree()  {
 
 QString LParser::testTreeEnd()  {
     int steps = 6;
-    QString input = "!(1)F(8)A()e";
+    QString input = "!(1)F(28)A()e";
     QHash<QChar,QVector<QPair<QString,float> > > *rules = new QHash<QChar,QVector<QPair<QString,float> > >();
     QVector<QPair<QString, float> > firstInsert;
     QPair<QString,float> firstInsertPair;

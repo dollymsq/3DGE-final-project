@@ -79,7 +79,7 @@ public:
     void tick(float seconds);
 
 
-    PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0));
+    PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0), int color = 0);
 
     Puzzles *m_puzzles;
     bool m_puzzleSolved;
@@ -106,9 +106,9 @@ public:
 
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
-    PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false,bool isShadows = true);
-    PxRigidDynamic *createDynamicBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false, int colornum = 0);
-    PxRigidStatic *createTriMesh(Renderable *r,const PxTransform &t,PxMaterial *m_material,bool isTransparent = false);
+    PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, int color = 0, bool isTransparent = false,bool isShadows = true);
+    PxRigidDynamic *createDynamicBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false, bool isShadows = true,int colornum = 0);
+    PxRigidStatic *createTriMesh(Renderable *r,const PxTransform &t,PxMaterial *m_material, int color = 0,bool isTransparent = false, bool isShadows = true);
     void createTreeActors(Tree &t);
     void initPhysics(bool interactive);
     void stepPhysics(bool interactive);
