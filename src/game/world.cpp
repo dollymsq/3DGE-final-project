@@ -110,21 +110,10 @@ World::~World()
     }
 }
 
-void World::resetScene(float aspectRatio)
-{
-//    m_scene->release();
-//    m_scene = m_physics->createScene(sceneDesc);
-
-//    delete m_puzzles;
-//    m_puzzles = new Puzzles();
-//    init(aspectRatio);
-//    m_puzzleSolved = 0;
-//    contactFlag = 0;
-}
-
 void World::init(float aspectRatio)
 {
     // camera
+    m_aspect = aspectRatio;
     m_camera.setAspectRatio(aspectRatio);
 
     initializeOpenGLFunctions();
@@ -179,7 +168,7 @@ void World::init(float aspectRatio)
     m_subTimer.start();
 
 //    m_dyanmicsCount = 40;
-    m_dyanmicsCount = 900;
+    m_dyanmicsCount = 10;
     m_dynamicsMessage = "Number of Balls Left: " + QString::number(m_dyanmicsCount);
 
     m_levelinfo = "Level 101 - Find and trigger the red box!";
@@ -252,16 +241,17 @@ void World::draw(QPainter *m_painter)
     showLevelStat(m_levelinfo, m_painter);
 }
 
-PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity,int color)
+PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity,int color,bool isShadow,bool isTrajectory)
 {
-    if(m_dyanmicsCount <= 0)
+    if(m_dyanmicsCount <= 0 && isTrajectory)
     {
         m_dynamicsMessage = "Number of Dynamics: " + QString::number(0);
     }
 
     else if(m_dyanmicsCount > 0)
     {
-        m_dyanmicsCount--;
+        if(isTrajectory)
+            m_dyanmicsCount--;
         PxMaterial *ballMat = m_physics->createMaterial(.9,.9,0.05);
         PxRigidDynamic* dynamic = PxCreateDynamic(*m_physics, t, geometry, *ballMat, 10.0f);
         dynamic->setAngularDamping(0.5f);
@@ -269,6 +259,8 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
 //        dynamic->setName("sphere");
         m_renderables.insert(dynamic,&sphereMesh);
         m_color.insert(dynamic,color);
+        if(!isShadow)
+            m_shadows.insert(dynamic);
         m_scene->addActor(*dynamic);
         setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eHOLE | FilterGroup::eRED_BOX | FilterGroup::eSTEPPING_BOX);
         m_dynamicsMessage = "Number of Dynamics: " + QString::number(m_dyanmicsCount);
@@ -470,6 +462,8 @@ void World::initPhysics(bool interactive)
 }
 
 void World::setUpRoomOne()  {
+    m_puzzles->level = 0;
+
     createStack(PxTransform(PxVec3(-60,  0,  -60.0f)), 5, 2.0f);
     createStack(PxTransform(PxVec3(-60,  0,  60.0f)), 5, 2.0f);
     createStack(PxTransform(PxVec3(60, 0, -60.0f)), 5, 2.0f);
@@ -530,7 +524,7 @@ void World::setUpRoomOne()  {
 
     //create spheres
     for(int i = 0; i < 10; i++)  {
-        createDynamic(PxTransform(Calc::random(-90,90),2,Calc::random(-90,90)),PxSphereGeometry(3.0f));
+        m_balls.insert(createDynamic(PxTransform(Calc::random(-90,90),2,Calc::random(-90,90)),PxSphereGeometry(3.0f)));
     }
 
     m_controllerManager = PxCreateControllerManager(*m_scene);
@@ -541,7 +535,10 @@ void World::setUpRoomOne()  {
 	const float gControllerRadius	= 0.3f * gScaleFactor;
 
     PxCapsuleControllerDesc desc;
-    desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
+//    desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
+//	desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
+    desc.position = PxExtendedVec3(0.0f, 0.0f, 0.0f); //1400
+//    desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
 //    desc.position = PxExtendedVec3(1300.0f, 0.0f, 0.0f);
     desc.contactOffset			= .50f;
     desc.stepOffset			= 2.0f;
@@ -656,7 +653,6 @@ void World::setUpRoomTwo()  {
 void World::setUpRoomThree()  {
     //create pole for bball net
 
-//    m_puzzles->level = 3;
 //    m_playerController->setPosition(PxExtendedVec3(550,  10,  -40.0));
 
     PxMaterial * backboardMaterial = m_physics->createMaterial(.95,.95,0);
@@ -679,12 +675,22 @@ void World::setUpRoomFour() {
 
 void World::setUpRoomFive()  {
 //    createBox(PxTransform(PxVec3(1100,-2,0)),200,2,20,m_material,0,false,false);
-    createTriMesh(&caveMesh,PxTransform(PxVec3(1175,-12,0)),m_material,8,false,false);
+    createTriMesh(&caveMesh,PxTransform(PxVec3(1195,-12,0)),m_material,8,false,false);
 }
 
 void World::setUpRoomSix()  {
 //    createTriMesh(&level6Mesh,PxTransform(PxVec3(1850,-175,0)),m_material,8,false,false);
-    createBox(PxTransform(PxVec3(1580,-20-1e-1,0)),200,2,250,m_material);
+    PxMaterial *m = m_physics->createMaterial(.1,.1,0);
+    createBox(PxTransform(PxVec3(1500,-20-1e-1,0)),100,2,250,m);
+    float curLoc = 1645;
+    for(int j = 0; j < 10; j++)  {
+        for(int i = -3; i < 4; i++ ) {
+            if(Calc::random(0.0f,1.0f) > .4f || j == 0)
+                createBox(PxTransform(PxVec3(curLoc,-45 - (j*49.5),i*40),PxQuat(M_PI/6.0f,PxVec3(0,0,-1))),50,2,20,m,i+3,false,false);
+        }
+        curLoc+= 85.5;
+    }
+
 }
 
 void World::stepPhysics(bool interactive)
@@ -735,6 +741,28 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
             PxGeometryHolder h = shapes[j]->getGeometry();
             bool toRender = true;
             // render object
+
+            if(actors[i] == m_boulder)  {
+                glm::vec3 p(shapePose.getPosition().x,shapePose.getPosition().y,shapePose.getPosition().z);
+                glm::vec3 playerP(m_playerController->getPosition().x,m_playerController->getPosition().y,m_playerController->getPosition().z);
+                if(glm::distance(p,playerP) < 110)  {
+                    std::cerr << "dead" << std::endl;
+                    m_gameOver = true;
+                }
+            }
+
+            if(m_balls.contains(actors[i]))  {
+                glm::vec3 p(shapePose.getPosition().x,shapePose.getPosition().y,shapePose.getPosition().z);
+//                std::cerr << m_playerController->getPosition().y << std::endl;
+                glm::vec3 playerP(m_playerController->getPosition().x,shapePose.getPosition().y,m_playerController->getPosition().z);
+                if(glm::distance(p,playerP) < 7)  {
+                    m_dyanmicsCount++;
+                    m_dynamicsMessage = "Number of Balls Left: " + QString::number(m_dyanmicsCount);
+                    m_scene->removeActor(*actors[i]);
+                    m_balls.remove(actors[i]);
+                }
+            }
+
 
             glPushMatrix();
             glMultMatrixf((float*)&shapePose);
@@ -824,6 +852,12 @@ void World::tick(float seconds)
         m_camera.m_position.x = pos.x;
         m_camera.m_position.y = pos.y;
         m_camera.m_position.z = pos.z;
+
+//        std::cerr << glm::to_string(glm::vec3(pos.x,pos.y,pos.z)) << std::endl;
+        if(pos.x > 1700 && !m_isBoulder)  {
+            m_boulder = createDynamic(PxTransform(PxVec3(1550,60,0)),PxSphereGeometry(100),PxVec3(70,-.5,0),0,false);
+            m_isBoulder = true;
+        }
         if(!m_puzzleSolved&& pos.x>=330)
         {
             m_puzzleSolved = 1;
@@ -838,11 +872,13 @@ void World::tick(float seconds)
         }
 //        std::cerr << glm::to_string(m_camera.m_position) << std::endl;
 
+//        std::cerr << glm::to_string(m_camera.m_position) << std::endl;
+        checkGameOver();
         m_camera.update(seconds);
         PxVec3 disp(m_camera.m_position.x - pos.x,
                     m_camera.m_position.y - pos.y,
                     m_camera.m_position.z - pos.z);
-        disp += PxVec3(0, -0.8f, 0);
+        disp += PxVec3(0, -5.8f, 0);
 
 
 //        std::cout << glm::to_string(m_camera.m_position) << std::endl;
@@ -850,6 +886,87 @@ void World::tick(float seconds)
 //    }
 
     stepPhysics(true);
+}
+
+void World::checkGameOver()  {
+    const PxExtendedVec3 &pos = m_playerController->getPosition();
+    glm::vec3 glmPos = glm::vec3(pos.x,pos.y,pos.z);
+    if(m_gameOver)
+        resetGame();
+    if(pos.x < 1600 && pos.y < -10)
+        m_gameOver = true;
+    if(pos.x > 1600 && pos.y < -600)
+        m_gameOver = true;
+}
+
+void World::resetGame()  {
+//    m_aspect = aspectRatio;
+//    m_camera.setAspectRatio(aspectRatio);
+
+//    initializeOpenGLFunctions();
+
+//    m_tree = Tree();
+//    m_treeTexId = loadTexture("treebark.jpg");
+//    m_tree.generate(LParser::testTree());
+
+//    initPhysics(true);
+
+//    m_cooking = PxCreateCooking(PX_PHYSICS_VERSION, m_physics->getFoundation(), PxCookingParams(PxTolerancesScale()));
+
+//    if(m_cooking)  {
+//        std::cout << "yay!" << std::endl;
+//    }
+//    else {
+//        std::cout << "shit" << std::endl;
+//    }
+
+//    createTreeTriMesh(m_tree);
+    m_gameOver = false;
+    m_renderables.clear();
+    m_renderableList.clear();
+    m_shadows.clear();
+    m_isBoulder = false;
+
+    m_balls.clear();
+    m_trees.clear();
+    m_color.clear();
+
+    m_scene->release();
+
+    contactFlag = NULL;
+
+    PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
+    sceneDesc.gravity = PxVec3(0.0f, -10.81f, 0.0f);
+    m_dispatcher = PxDefaultCpuDispatcherCreate(2);
+    sceneDesc.cpuDispatcher	= m_dispatcher;
+    sceneDesc.filterShader	= WorldFilterShader;
+    sceneDesc.simulationEventCallback	= this;
+    sceneDesc.contactModifyCallback = this;
+    m_scene = m_physics->createScene(sceneDesc);
+
+    m_redBlock = NULL;
+
+    m_puzzles->level = 1;
+
+    setUpRoomOne();
+    setUpRoomTwo();
+    setUpRoomThree();
+    setUpRoomFour();
+    setUpRoomFive();
+    setUpRoomSix();
+
+    PxTransform pose;
+    pose.p = PxVec3(0,0,0);
+    pose.q= PxQuat(0,PxVec3(0,1,0));
+
+    m_subTimer.restart();
+
+    m_dyanmicsCount = 10;
+    m_dynamicsMessage = "Number of Balls Left: " + QString::number(m_dyanmicsCount);
+
+    m_levelinfo = "Level 1 - Find and trigger the red box!";
+//    initShaders();
+    std::cout << "meow" << std::endl;
 }
 
 void World::shootDynamic()
@@ -870,7 +987,7 @@ void World::shootDynamic()
         transform = PxTransform(eye + dir * 8.0f, PxQuat(m));
     }
 
-    createDynamic(transform, PxSphereGeometry(2.5f), dir*100);
+    m_balls.insert(createDynamic(transform, PxSphereGeometry(2.5f), dir*100));
 }
 
 void World::showSubtitles(QString &info, QPainter* m_painter) // eventually fading away
@@ -962,8 +1079,8 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
 //                break;
 
                 PxU32 tempFlag = contactFlag;
-                if(tempFlag == FilterGroup::eSTEPPING_BOX)
-                    emit m_puzzles->puzzlesSolved("You have used the stepping box to pass through the hole");
+//                if(tempFlag == FilterGroup::eSTEPPING_BOX)
+//                    emit m_puzzles->puzzlesSolved("You have used the stepping box to pass through the hole");
 
                 contactFlag |= FilterGroup::eHOLE ;
                 if(m_puzzles->level >= 1)
