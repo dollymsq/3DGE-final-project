@@ -149,7 +149,8 @@ void World::init(float aspectRatio)
 
     m_subTimer.start();
 
-    m_dyanmicsCount = 40;
+//    m_dyanmicsCount = 40;
+    m_dyanmicsCount = 900;
     m_dynamicsMessage = "Number of Balls Left: " + QString::number(m_dyanmicsCount);
 
     m_levelinfo = "Level 1 - Find and trigger the red box!";
@@ -499,7 +500,7 @@ void World::setUpRoomOne()  {
     desc.stepOffset			= 0.01;
     desc.slopeLimit			= 0.5f;
     desc.radius				= 5.0f;
-    desc.height				= 10.0f;
+    desc.height				= 20.0f;
     desc.upDirection = PxVec3(0, 1, 0);
     desc.material = m_material;
 
@@ -716,8 +717,8 @@ void World::tick(float seconds)
 void World::shootDynamic()
 {
     PxTransform transform;
-    PxVec3 dir(m_camera.m_lookAt.x, m_camera.m_lookAt.y,m_camera.m_lookAt.z);
-    PxVec3 eye(m_camera.m_position.x, m_camera.m_position.y,m_camera.m_position.z);
+    PxVec3 dir(m_camera.m_lookAt.x, m_camera.m_lookAt.y + 20,m_camera.m_lookAt.z);
+    PxVec3 eye(m_camera.m_position.x, m_camera.m_position.y + 20, m_camera.m_position.z);
 
     dir = dir - eye;
     dir.normalize();
@@ -728,10 +729,10 @@ void World::shootDynamic()
         transform = PxTransform(eye);
     } else {
         PxMat33 m(dir.cross(viewY), viewY, -dir);
-        transform = PxTransform(eye, PxQuat(m));
+        transform = PxTransform(eye + dir * 8.0f, PxQuat(m));
     }
 
-    createDynamic(transform, PxSphereGeometry(3.0f), dir*100);
+    createDynamic(transform, PxSphereGeometry(2.5f), dir*100);
 }
 
 void World::showSubtitles(QString &info, QPainter* m_painter) // eventually fading away

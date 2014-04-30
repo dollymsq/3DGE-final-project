@@ -53,7 +53,8 @@ void Window::renderOpenGL()
 
 void Window::mousePressEvent(QMouseEvent *event)
 {
-    Q_UNUSED(event);
+    if (event->button() == Qt::LeftButton)
+        m_world.shootDynamic();
 }
 
 void Window::mouseMoveEvent(QMouseEvent *event)
@@ -107,8 +108,8 @@ void Window::keyPressEvent(QKeyEvent *event)
         break;
     }
 
-    if (event->key() == Qt::Key_Space)
-        m_world.shootDynamic();
+//    if (event->key() == Qt::Key_Space)
+//        m_world.shootDynamic();
 }
 
 void Window::keyReleaseEvent(QKeyEvent *event)
