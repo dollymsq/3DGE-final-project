@@ -125,7 +125,7 @@ private:
     QString m_levelinfo;
 
     void setUpRoomOne();
-
+    void setUpRoomTwo();
     GLuint loadTexture(const QString &path);
 
     GLuint m_treeTexId;
