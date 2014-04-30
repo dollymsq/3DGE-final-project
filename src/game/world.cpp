@@ -131,6 +131,7 @@ void World::init(float aspectRatio)
     setUpRoomOne();
     setUpRoomTwo();
     setUpRoomThree();
+
     PxTransform pose;
     pose.p = PxVec3(0,0,0);
     pose.q= PxQuat(0,PxVec3(0,1,0));
@@ -300,10 +301,9 @@ PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal
 
     PxRigidStatic* body = m_physics->createRigidStatic(t);
     body->attachShape(*shape);
-    m_renderables.insert(body,&cubeMesh);
     m_color.insert(body,color);
-    if(isTransparent)
-        body->setName("transparent");
+    if(!isTransparent)
+        m_renderables.insert(body,&cubeMesh);
     m_scene->addActor(*body);
 
     if(!isShadows)
@@ -431,7 +431,7 @@ void World::initPhysics(bool interactive)
 
 
     PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
-    sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
+    sceneDesc.gravity = PxVec3(0.0f, -10.81f, 0.0f);
     m_dispatcher = PxDefaultCpuDispatcherCreate(2);
     sceneDesc.cpuDispatcher	= m_dispatcher;
     sceneDesc.filterShader	= WorldFilterShader;
@@ -460,10 +460,12 @@ void World::setUpRoomOne()  {
     createBox(PxTransform(PxVec3(0,-100 -1e-1,-100),PxQuat(0,PxVec3(1,0,0))),150,100,200,m_material);
 
     //the front wall and hole
+
     createBox(PxTransform(PxVec3(-82.5,  60,  -100.0f)), 67.5, 60, 2,m_material);
     createBox(PxTransform(PxVec3(0,  15,  -100.0f)), 15, 15, 2,m_material);
     createBox(PxTransform(PxVec3(0,  90,  -100.0f)), 15, 30, 2,m_material);
     m_hole = createBox(PxTransform(PxVec3(0,  45,  -100.0f)), 25, 25, 1.0f,m_material);
+
     setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
     createBox(PxTransform(PxVec3(82.5,  60,  -100.0f)), 67.5, 60, 2,m_material);
 
@@ -528,7 +530,9 @@ void World::setUpRoomOne()  {
     desc.height				= 20.0f;
     desc.upDirection = PxVec3(0, 1, 0);
     desc.material = m_material;
-
+	desc.behaviorCallback		= this;
+    desc.reportCallback = this;
+//    desc.
 
 //    desc.invisibleWallHeight	= 0.0f;
 //    desc.maxJumpHeight			= 0.0f;
@@ -538,7 +542,6 @@ void World::setUpRoomOne()  {
 //    desc.material = m_material;
 
 //	desc.mReportCallback		= this;
-//	desc.mBehaviorCallback		= this;
 
 /*
  THE DESC IS VALID IF AND ONLY IF
@@ -643,7 +646,13 @@ void World::setUpRoomThree()  {
 void World::stepPhysics(bool interactive)
 {
     PX_UNUSED(interactive)
-    m_scene->simulate(1.0f/20.0f);
+//    m_scene->simulate(1.0f/40.0f);
+//    m_scene->simulate(1.0f/40.0f);
+//    m_scene->simulate(1.0f/25.0f);
+//    m_scene->fetchResults(true);
+    m_scene->simulate(1.0f/40.0f);
+    m_scene->fetchResults(true);
+    m_scene->simulate(1.0f/40.0f);
     m_scene->fetchResults(true);
 }
 
@@ -699,8 +708,8 @@ void World::renderActors(PxRigidActor** actors, const PxU32 numActors, bool shad
 //            if(sleeping)
 //                glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
 //            else
-//                if(actors[i] == m_hole)
-//                    glColor4f(0.5f, 0.8f, 0.8f, 1.0f);
+                if(actors[i] == m_hole)
+                    glColor4f(0.5f, 0.8f, 0.8f, 1.0f);
             if(toRender)
                 renderGeometry(h,m_renderables[actors[i]]);
             glPopMatrix();
@@ -837,7 +846,7 @@ void World::showPermanentStat(QString &info, QPainter* m_painter)
 
 }
 
-void World::showLevelStat(QString &info, QPainter* m_painter)
+void World:: showLevelStat(QString &info, QPainter* m_painter)
 {
     m_painter->setPen(QPen(Qt::white));
     m_painter->drawText(QRect(20,120,600,100), Qt::AlignLeft, info);
@@ -918,6 +927,7 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
 //                    m_camera.m_position = glm::vec3(-15.0,  40.0,  -120.0);
                     m_levelinfo = "Level 3 - Find the path to the next door";
 
+//                    m_scene->removeActor(*m_door,true);
                 }
             }
 //            else if((pairHeader.actors[0] == groundPlane) || (pairHeader.actors[1] == groundPlane))//the ground
@@ -930,10 +940,43 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
             else
             {
                 emit m_puzzles->puzzlesSolved("You have hit the hidden box");
+                m_hole->setName("transparent");
                 m_levelinfo = "Level 2 - Use some tricks to push down the domino walls";
             }
         }
     }
+}
+
+void World::onShapeHit(const PxControllerShapeHit &hit)
+{
+    std::cout << hit.actor->getName() << std::endl;
+}
+
+void World::onControllerHit(const PxControllersHit &hit)
+{
+//      std::cout << hit.controller->getName() << std::endl;
+}
+
+void World::onObstacleHit(const PxControllerObstacleHit &hit)
+{
+    std::cout << hit.worldPos.x << std::endl;
+}
+
+PxControllerBehaviorFlags World::getBehaviorFlags(const PxShape &shape, const PxActor &actor)
+{
+    std::cout << "behavior actor";
+    std::cout << actor.getName() << std::endl;
+}
+
+PxControllerBehaviorFlags World::getBehaviorFlags(const PxController &controller)
+{
+
+}
+
+PxControllerBehaviorFlags World::getBehaviorFlags(const PxObstacle &obstacle)
+{
+    std::cout << "behavrio obstacles";
+    std::cout << obstacle.getType() << std::endl;
 }
 
 void World::onContactModify(PxContactModifyPair *const pairs, PxU32 count)

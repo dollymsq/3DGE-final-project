@@ -66,7 +66,11 @@ struct Color
 
 };
 
-class World : public QObject, protected QOpenGLFunctions, public PxSimulationEventCallback, public PxContactModifyCallback
+class World : public QObject, protected QOpenGLFunctions,
+        public PxSimulationEventCallback,
+        public PxContactModifyCallback,
+        public PxUserControllerHitReport,
+        public PxControllerBehaviorCallback
 {
     Q_OBJECT
 
@@ -94,15 +98,23 @@ public:
     glm::mat4 getVMatrix();
     void rotateMouse(glm::vec2 delta);
 
+    virtual void onShapeHit(const PxControllerShapeHit& hit);
+    virtual void onControllerHit(const PxControllersHit& hit);
+    virtual void onObstacleHit(const PxControllerObstacleHit& hit);
+
+    virtual PxControllerBehaviorFlags getBehaviorFlags(const PxShape& shape, const PxActor& actor);
+    virtual PxControllerBehaviorFlags getBehaviorFlags(const PxController& controller);
+    virtual PxControllerBehaviorFlags getBehaviorFlags(const PxObstacle& obstacle);
+
+
     virtual void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs);
+
     virtual void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) {}
     virtual void onWake(PxActor** actors, PxU32 count) {}
     virtual void onSleep(PxActor** actors, PxU32 count) {}
     virtual void onTrigger(PxTriggerPair* pairs, PxU32 count) {}
 
     virtual void onContactModify(PxContactModifyPair *const pairs, PxU32 count);
-
-
 
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
