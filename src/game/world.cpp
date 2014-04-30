@@ -483,7 +483,7 @@ void World::setUpRoomOne()  {
 
     //create spheres
     for(int i = 0; i < 10; i++)  {
-        createDynamic(PxTransform(Calc::random(-50,50),2,Calc::random(-50,50)),PxSphereGeometry(3.0f));
+        createDynamic(PxTransform(Calc::random(-50.0,50.0),2,Calc::random(-50.0,50.0)),PxSphereGeometry(3.0f));
     }
 
     m_controllerManager = PxCreateControllerManager(*m_scene);
