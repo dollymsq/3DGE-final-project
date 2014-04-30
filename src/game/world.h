@@ -153,6 +153,8 @@ private:
     Obj backboardMesh;
     Obj discMesh;
     Obj appleMesh;
+    Obj caveMesh;
+    Obj level6Mesh;
 //    Tree triangleMesh;
 
     PxU32 contactFlag;//to mark for the last contact actor

@@ -5,7 +5,7 @@ Camera::Camera()
     , m_up(0.0f, 1.0f, 0.0f)
     , m_velocity(0.0f)
     , m_fov(1.047f)
-    , m_speed(25.0f)
+    , m_speed(50.0f)
     , m_pitchSpeed(0.6f)
     , m_yawSpeed(0.6f)
 {

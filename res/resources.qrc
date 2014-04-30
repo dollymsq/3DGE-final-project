@@ -14,5 +14,7 @@
         <file>meshes/backboard.obj</file>
         <file>meshes/apple.obj</file>
         <file>meshes/disc.obj</file>
+        <file>meshes/m_caveMeshLessTris.obj</file>
+        <file>meshes/level5Mesh.obj</file>
     </qresource>
 </RCC>

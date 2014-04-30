@@ -57,6 +57,8 @@ World::World() :
     rimMesh("rim.obj"),
     discMesh("disc.obj"),
     appleMesh("apple.obj"),
+    caveMesh("m_caveMeshLessTris.obj"),
+    level6Mesh("level5Mesh.obj"),
     m_foundation(NULL),
     m_physics(NULL),
     m_dispatcher(NULL),
@@ -72,7 +74,7 @@ World::World() :
     m_puzzles = new Puzzles();
     m_puzzles->level = 0;
 
-    Vector4 grey    = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+    Vector4 grey    = Vector4(0.9f, 0.9f, 0.9f, 1.0f);
     Vector4 red     = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
     Vector4 orange  = Vector4(1.0f, 0.5f, 0.0f, 1.0f);
     Vector4 yellow  = Vector4(1.0f, 1.0f, 0.0f, 1.0f);
@@ -132,6 +134,8 @@ void World::init(float aspectRatio)
     setUpRoomTwo();
     setUpRoomThree();
     setUpRoomFour();
+    setUpRoomFive();
+    setUpRoomSix();
 
     PxTransform pose;
     pose.p = PxVec3(0,0,0);
@@ -243,7 +247,7 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
     else if(m_dyanmicsCount > 0)
     {
         m_dyanmicsCount--;
-        PxMaterial *ballMat = m_physics->createMaterial(.9,.9,0.1);
+        PxMaterial *ballMat = m_physics->createMaterial(.9,.9,0.05);
         PxRigidDynamic* dynamic = PxCreateDynamic(*m_physics, t, geometry, *ballMat, 10.0f);
         dynamic->setAngularDamping(0.5f);
         dynamic->setLinearVelocity(velocity);
@@ -441,7 +445,7 @@ void World::initPhysics(bool interactive)
     m_scene = m_physics->createScene(sceneDesc);
 
 
-    m_material = m_physics->createMaterial(0.5f, 0.5f, 0.1f);
+    m_material = m_physics->createMaterial(0.5f, 0.5f, 0.8f);
 
 //    groundPlane = PxCreatePlane(*m_physics, PxPlane(0,1,0,0), *m_material);
 //    m_scene->addActor(*groundPlane);
@@ -524,12 +528,12 @@ void World::setUpRoomOne()  {
 
     PxCapsuleControllerDesc desc;
 //	desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
-    desc.position = PxExtendedVec3(550.0f, 0.0f, 0.0f);
-    desc.contactOffset			= 0.05f;
-    desc.stepOffset			= 0.01;
-    desc.slopeLimit			= 0.5f;
+    desc.position = PxExtendedVec3(1000.0f, 0.0f, 0.0f);
+    desc.contactOffset			= .50f;
+    desc.stepOffset			= 2.0f;
+    desc.slopeLimit			= 0.00f;
     desc.radius				= 5.0f;
-    desc.height				= 20.0f;
+    desc.height				= 10.0f;
     desc.upDirection = PxVec3(0, 1, 0);
     desc.material = m_material;
 	desc.behaviorCallback		= this;
@@ -648,7 +652,20 @@ void World::setUpRoomThree()  {
 }
 
 void World::setUpRoomFour() {
+     createBox(PxTransform(PxVec3(695,-2-1e-1,0)),50,2,20,m_material,0,false,false);
+     PxActor* actor = createBox(PxTransform(PxVec3(945,0,0)),2,100,100,m_material);
+     m_scene->removeActor(*actor);
+     m_renderableList.append(actor->isRigidActor());
+}
 
+void World::setUpRoomFive()  {
+//    createBox(PxTransform(PxVec3(1100,-2,0)),200,2,20,m_material,0,false,false);
+    createTriMesh(&caveMesh,PxTransform(PxVec3(1175,-12,0)),m_material,8,false,false);
+}
+
+void World::setUpRoomSix()  {
+//    createTriMesh(&level6Mesh,PxTransform(PxVec3(1850,-175,0)),m_material,8,false,false);
+    createBox(PxTransform(PxVec3(1580,-20-1e-1,0)),200,2,250,m_material);
 }
 
 void World::stepPhysics(bool interactive)
@@ -789,7 +806,7 @@ void World::tick(float seconds)
         m_camera.m_position.y = pos.y;
         m_camera.m_position.z = pos.z;
 
-        std::cerr << glm::to_string(m_camera.m_position) << std::endl;
+//        std::cerr << glm::to_string(m_camera.m_position) << std::endl;
 
         m_camera.update(seconds);
         PxVec3 disp(m_camera.m_position.x - pos.x,
