@@ -106,7 +106,7 @@ public:
 
 private:
     void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent);
-    PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, int color = 0, bool isTransparent = false,bool isShadows = true);
+    PxRigidStatic *createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, PxMaterial *m, int color = 0, bool isTransparent = false,bool isShadows = true);
     PxRigidDynamic *createDynamicBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, bool isTransparent = false, bool isShadows = true,int colornum = 0);
     PxRigidStatic *createTriMesh(Renderable *r,const PxTransform &t,PxMaterial *m_material, int color = 0,bool isTransparent = false, bool isShadows = true);
     void createTreeActors(Tree &t);
@@ -126,19 +126,29 @@ private:
 
     void setUpRoomOne();
     void setUpRoomTwo();
+    void setUpRoomThree();
+    void setUpRoomFour();
+    void setUpRoomFive();
+    void setUpRoomSix();
+
     GLuint loadTexture(const QString &path);
 
     GLuint m_treeTexId;
 
     Obj sphereMesh;
     Obj cubeMesh;
+    Obj rimMesh;
+    Obj backboardMesh;
+    Obj discMesh;
+    Obj appleMesh;
 //    Tree triangleMesh;
 
     PxU32 contactFlag;//to mark for the last contact actor
 
     QHash<const PxActor*,Renderable*> m_renderables;
     QSet<const PxActor*> m_shadows;
-    QVector<Renderable*> m_renderableList;
+    QVector<PxRigidActor*> m_renderableList;
+    QVector<Tree*> m_trees;
     QHash<const PxActor*,int> m_color;
 
     PxCooking *m_cooking;
@@ -151,7 +161,7 @@ private:
     PxRigidStatic           *m_door;
     PxActor                 *currentBall;
 
-    Vector4                 pallete[8];
+    Vector4                 pallete[9];
     PxVec3                  m_redBlockPos;
     PxVec3                  m_redBlockOriPos;
 

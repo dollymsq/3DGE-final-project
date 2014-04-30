@@ -53,6 +53,10 @@ void setupFiltering(PxRigidActor* actor, PxU32 filterGroup, PxU32 filterMask)
 World::World() :
     sphereMesh("sphere.obj"),
     cubeMesh("cube.obj"),
+    backboardMesh("backboard.obj"),
+    rimMesh("rim.obj"),
+    discMesh("disc.obj"),
+    appleMesh("apple.obj"),
     m_foundation(NULL),
     m_physics(NULL),
     m_dispatcher(NULL),
@@ -77,6 +81,7 @@ World::World() :
     Vector4 indigo  = Vector4(0.3f, 0.0f, 0.5f, 1.0f);
     Vector4 violet  = Vector4(0.56f, 0.0f, 1.0f, 1.0f);
     Vector4 darkgrey = Vector4(.2f,.2f,.2f,1.0f);
+    Vector4 white = Vector4(1.0f,1.0f,1.0f,1.0f);
     pallete[0]= grey;
     pallete[1]= red;
     pallete[2]= orange;
@@ -86,6 +91,7 @@ World::World() :
     pallete[6]= indigo;
     pallete[7]= violet;
     pallete[8]= darkgrey;
+    pallete[9] = white;
 
 }
 
@@ -94,8 +100,8 @@ World::~World()
     //TODO: find a better place
     cleanupPhysics(true);
     delete m_puzzles;
-    for(int i = 0; i < m_renderableList.size(); i++)  {
-        delete m_renderableList.at(i);
+    for(int i = 0; i < m_trees.size(); i++)  {
+        delete m_trees.at(i);
     }
 }
 
@@ -123,6 +129,8 @@ void World::init(float aspectRatio)
 
 //    createTreeTriMesh(m_tree);
     setUpRoomOne();
+    setUpRoomTwo();
+    setUpRoomThree();
     PxTransform pose;
     pose.p = PxVec3(0,0,0);
     pose.q= PxQuat(0,PxVec3(0,1,0));
@@ -198,6 +206,10 @@ void World::draw(QPainter *m_painter)
     }
 
 
+    if(!m_renderableList.isEmpty())  {
+        renderActors(&m_renderableList[0],(PxU32)m_renderableList.size(),true);
+    }
+
     glDisable(GL_LIGHTING);
 
 //    // Draw grid
@@ -229,8 +241,8 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
     else if(m_dyanmicsCount > 0)
     {
         m_dyanmicsCount--;
-
-        PxRigidDynamic* dynamic = PxCreateDynamic(*m_physics, t, geometry, *m_material, 10.0f);
+        PxMaterial *ballMat = m_physics->createMaterial(.9,.9,0.1);
+        PxRigidDynamic* dynamic = PxCreateDynamic(*m_physics, t, geometry, *ballMat, 10.0f);
         dynamic->setAngularDamping(0.5f);
         dynamic->setLinearVelocity(velocity);
 //        dynamic->setName("sphere");
@@ -282,9 +294,9 @@ void World::createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 
 
 
-PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, int color, bool isTransparent, bool isShadows)
+PxRigidStatic* World::createBox(const PxTransform& t, PxReal x, PxReal y, PxReal z, PxMaterial *m, int color, bool isTransparent, bool isShadows)
 {
-    PxShape* shape = m_physics->createShape(PxBoxGeometry(x, y, z), *m_material, true);
+    PxShape* shape = m_physics->createShape(PxBoxGeometry(x, y, z), *m, true);
 
     PxRigidStatic* body = m_physics->createRigidStatic(t);
     body->attachShape(*shape);
@@ -428,7 +440,7 @@ void World::initPhysics(bool interactive)
     m_scene = m_physics->createScene(sceneDesc);
 
 
-    m_material = m_physics->createMaterial(0.5f, 0.5f, 0.6f);
+    m_material = m_physics->createMaterial(0.5f, 0.5f, 0.1f);
 
 //    groundPlane = PxCreatePlane(*m_physics, PxPlane(0,1,0,0), *m_material);
 //    m_scene->addActor(*groundPlane);
@@ -445,50 +457,55 @@ void World::setUpRoomOne()  {
     createStack(PxTransform(PxVec3(60, 0, 60.0f)), 5, 2.0f);
 
     //the floor
-    createBox(PxTransform(PxVec3(0,-100 -1e-1,-100),PxQuat(0,PxVec3(1,0,0))),150,100,200);
+    createBox(PxTransform(PxVec3(0,-100 -1e-1,-100),PxQuat(0,PxVec3(1,0,0))),150,100,200,m_material);
 
     //the front wall and hole
-    createBox(PxTransform(PxVec3(-82.5,  60,  -100.0f)), 67.5, 60, 2);
-    createBox(PxTransform(PxVec3(0,  15,  -100.0f)), 15, 15, 2);
-    createBox(PxTransform(PxVec3(0,  90,  -100.0f)), 15, 30, 2);
-    m_hole = createBox(PxTransform(PxVec3(0,  45,  -100.0f)), 17.5, 17.5, 1.0f,0,true,false);
+    createBox(PxTransform(PxVec3(-82.5,  60,  -100.0f)), 67.5, 60, 2,m_material);
+    createBox(PxTransform(PxVec3(0,  15,  -100.0f)), 15, 15, 2,m_material);
+    createBox(PxTransform(PxVec3(0,  90,  -100.0f)), 15, 30, 2,m_material);
+    m_hole = createBox(PxTransform(PxVec3(0,  45,  -100.0f)), 25, 25, 1.0f,m_material);
     setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
-    createBox(PxTransform(PxVec3(82.5,  60,  -100.0f)), 67.5, 60, 2);
+    createBox(PxTransform(PxVec3(82.5,  60,  -100.0f)), 67.5, 60, 2,m_material);
 
     //the back wall
-    createBox(PxTransform(PxVec3(0,60,100.0f)),150,60,2,0,false,false);
+    createBox(PxTransform(PxVec3(0,60,100.0f)),150,60,2,m_material,0,false,false);
 
     //the left wall
-    createBox(PxTransform(PxVec3(-150.0f,60,0)),2,60,100);
+    createBox(PxTransform(PxVec3(-150.0f,60,0)),2,60,100,m_material);
 
     //the front wall
-    createBox(PxTransform(PxVec3(150.0f,60,-52.5f)),2,60,45);
-    createBox(PxTransform(PxVec3(150.0f,60,52.5f)),2,60,45);
-    createBox(PxTransform(PxVec3(150.0f,90,0)),2,30,7.5);
-    m_door = createBox(PxTransform(PxVec3(150.0f,30,0)),2,30,7.5);
+    createBox(PxTransform(PxVec3(150.0f,60,-52.5f)),2,60,45,m_material);
+    createBox(PxTransform(PxVec3(150.0f,60,52.5f)),2,60,45,m_material);
+    createBox(PxTransform(PxVec3(150.0f,90,0)),2,30,7.5,m_material);
+    m_door = createBox(PxTransform(PxVec3(150.0f,30,0)),2,30,7.5,m_material);
+    m_scene->removeActor(*m_door);
+
+    //extended front wall
+    createBox(PxTransform(PxVec3(150.0f,60,-175)),2,60,115,m_material,0,false,false);
+
     m_color.insert(m_door,8);
 
     //trees
     Tree *t1 = new Tree();
     t1->generate(LParser::testTree());
     createTriMesh(t1,PxTransform(PxVec3(50,0,0),PxQuat(0,PxVec3(0,1,0))),m_material);
-    m_renderableList.append(t1);
+    m_trees.append(t1);
 
     Tree *t2 = new Tree();
     t2->generate(LParser::testTree());
     createTriMesh(t2,PxTransform(PxVec3(-60,0,20),PxQuat(0,PxVec3(0,1,0))),m_material);
-    m_renderableList.append(t2);
+    m_trees.append(t2);
 
 
     //create domino
     m_domino = createDynamicBox(PxTransform(PxVec3(0,  30,  -120.0f)), 10, 30, 2, false, 1);
     setupFiltering(m_domino, FilterGroup::eGROUND, FilterGroup::eBALL);
-    createDynamicBox(PxTransform(PxVec3(0,  40,  -140.0f)), 10, 40, 2, false, 2);
-    createDynamicBox(PxTransform(PxVec3(0,  50,  -160.0f)), 10, 50, 2, false, 3);
-    createDynamicBox(PxTransform(PxVec3(0,  50,  -180.0f)), 10, 50, 2, false, 4);
-    createDynamicBox(PxTransform(PxVec3(0,  50,  -200.0f)), 10, 50, 2, false, 5);
-    createDynamicBox(PxTransform(PxVec3(0,  50,  -220.0f)), 10, 50, 2, false, 6);
-    createDynamicBox(PxTransform(PxVec3(0,  50,  -240.0f)), 10, 50, 2, false, 7);
+    createDynamicBox(PxTransform(PxVec3(0,  40,  -140.0f)), 10, 40, 2, false, true, 2);
+    createDynamicBox(PxTransform(PxVec3(0,  50,  -160.0f)), 10, 50, 2, false, true, 3);
+    createDynamicBox(PxTransform(PxVec3(0,  50,  -180.0f)), 10, 50, 2, false, true, 4);
+    createDynamicBox(PxTransform(PxVec3(0,  50,  -200.0f)), 10, 50, 2, false, true, 5);
+    createDynamicBox(PxTransform(PxVec3(0,  50,  -220.0f)), 10, 50, 2, false, true, 6);
+    createDynamicBox(PxTransform(PxVec3(0,  50,  -240.0f)), 10, 50, 2, false, true, 7);
 
     //create spheres
     for(int i = 0; i < 10; i++)  {
@@ -547,33 +564,79 @@ void World::setUpRoomOne()  {
     m_playerController = m_controllerManager->createController(desc);
 
     //the stepping box
-    m_steppingbox = createBox(PxTransform(PxVec3(0,  2,  0)), 10, 2, 10);
+    PxMaterial *trampoline = m_physics->createMaterial(.5,.5,.9);
+    m_steppingbox = createBox(PxTransform(PxVec3(0,  2,  0)), 10, 2, 10,trampoline);
     setupFiltering(m_steppingbox, FilterGroup::eSTEPPING_BOX, FilterGroup::eBALL);
 }
 
 void World::setUpRoomTwo()  {
-//                        m_camera.m_position = glm::vec3(-15.0,  80.0,  -120.0);
 
     //path made from a series of boxes
-    createBox(PxTransform(PxVec3(-1,28,-117),PxQuat(0,PxVec3(1,0,0))),18,2,15);
 
-    createBox(PxTransform(PxVec3(-15,28,-140),PxQuat(0,PxVec3(1,0,0))),45,2,15);
-    createBox(PxTransform(PxVec3(-30,28,-170),PxQuat(0,PxVec3(1,0,0))),10,2,15);
-    createBox(PxTransform(PxVec3(25,28,-170),PxQuat(0,PxVec3(1,0,0))),10,2,15);
-    createBox(PxTransform(PxVec3(40,28,-230),PxQuat(0,PxVec3(1,0,0))),10,2,60);
+    //the floor
+    createBox(PxTransform(PxVec3(200,-2 - 1e-1,0)),50,2,7.5,m_material);
+    float currentLoc=257.5;
+    int size = 4;
+    int width = 2;
+    for(int j = -width;j < width+1;j++)  {
+        for(int i = -size;i < size+1; i++)  {
+            PxActor* panelTemp = createBox(PxTransform(PxVec3(currentLoc,-2 - 1e-1,15*i)),7.5,2,7.5,m_material,abs((j+i)%8));
+            if(j== -width && (i!=0 && i!=size && i!= size-1 && i!= size-2)) {
+                m_scene->removeActor(*panelTemp);
+                m_renderableList.append(panelTemp->isRigidActor());
+            }
+            if(j== -width+1 && (i==-size || i == -size+1 || i==size-1)) {
+                m_scene->removeActor(*panelTemp);
+                m_renderableList.append(panelTemp->isRigidActor());
+            }
+            if(j==0 && (i != -size+1 && i != size && i!= -size+2))  {
+                m_scene->removeActor(*panelTemp);
+                m_renderableList.append(panelTemp->isRigidActor());
+            }
+            if(j==1 && (i != -size+1 && i!= -size && i != size))  {
+                m_scene->removeActor(*panelTemp);
+                m_renderableList.append(panelTemp->isRigidActor());
+            }
+            if(j==2 && (i == -size+1 || i == -size+2 || i== -size+3)) {
+                m_scene->removeActor(*panelTemp);
+                m_renderableList.append(panelTemp->isRigidActor());
+            }
+
+        }
+        currentLoc += 15;
+    }
+    currentLoc+=12.5;
+    createBox(PxTransform(PxVec3(currentLoc,-2 - 1e-1,0)),20,2,7.5,m_material);
+    createBox(PxTransform(PxVec3(currentLoc+40,-2 - 1e-1,0)),20,2,7.5,m_material);
+    createBox(PxTransform(PxVec3(currentLoc+80,-2 - 1e-1,0)),20,2,7.5,m_material);
+
+    currentLoc += 100.f;
+//    for(int j = -width;j < width+1;j++)  {
+//        for(int i = -size;i < size+1; i++)  {
+//            createBox(PxTransform(PxVec3(currentLoc,-2 - 1e-1,7.5*i)),7.5,2,7.5);
+//        }
+//        currentLoc += 7.5;
+//    }
+    createBox(PxTransform(PxVec3(currentLoc+100,-100-1e-1,0)),100,100,100,m_material);
+
+    //tree
+//    Tree *t = new Tree(glm::vec3(200,0,0));
+//    t->generate(LParser::testTree());
+//    createTriMesh(t,PxTransform(PxVec3(500,0,0),PxQuat(0,PxVec3(0,1,0))),m_material);
+//    m_trees.append(t);
 
 
-    createBox(PxTransform(PxVec3(-25,28,-215),PxQuat(0,PxVec3(1,0,0))),10,2,45);
-    createBox(PxTransform(PxVec3(-5,28,-270),PxQuat(0,PxVec3(1,0,0))),10,2,20);
+}
 
-    //the front wall and hole
-    createBox(PxTransform(PxVec3(-82.5,  60,  -291.0f)), 67.5, 60, 1);
-    createBox(PxTransform(PxVec3(0,  15,  -291.0f)), 15, 15, 1);
-    createBox(PxTransform(PxVec3(0,  90,  -291.0f)), 15, 30, 1);
-    m_hole = createBox(PxTransform(PxVec3(0,  45,  -291.0f)), 15, 15, 1.0f,false);
-    setupFiltering(m_hole, FilterGroup::eHOLE, FilterGroup::eBALL);
-    createBox(PxTransform(PxVec3(82.5,  60,  -291.0f)), 67.5, 60, 1);
-
+void World::setUpRoomThree()  {
+    //create pole for bball net
+    PxMaterial * backboardMaterial = m_physics->createMaterial(.95,.95,0);
+    PxMaterial * rimMaterial = m_physics->createMaterial(.1,.3,.5);
+    createBox(PxTransform(PxVec3(550,0,-90)),20,100,10,m_material,0,false,false);
+    createBox(PxTransform(PxVec3(550,50,-80),PxQuat(M_PI/8.0f,PxVec3(1,0,0))),10,2,20,m_material,false,false);
+    createTriMesh(&backboardMesh,PxTransform(PxVec3(550,70,-80),PxQuat(-1.0f*M_PI/2.0f,PxVec3(0,1,0))),backboardMaterial,9,false,false);
+    createTriMesh(&rimMesh,PxTransform(PxVec3(550,70,-80),PxQuat(-1.0f*M_PI/2.0f,PxVec3(0,1,0))),rimMaterial,1,false,false);
+//    createTriMesh(&discMesh,PxTransform(PxVec3(550,70,-80),PxQuat(-1.0f*M_PI/2.0f,PxVec3(0,1,0))),m_material,0,true,false);
 
 }
 
@@ -854,7 +917,6 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
                     emit m_puzzles->puzzlesSolved("You have finished this level");
 //                    m_camera.m_position = glm::vec3(-15.0,  40.0,  -120.0);
                     m_levelinfo = "Level 3 - Find the path to the next door";
-                    setUpRoomTwo();
 
                 }
             }
