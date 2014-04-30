@@ -250,7 +250,7 @@ PxRigidDynamic* World::createDynamic(const PxTransform& t, const PxGeometry& geo
         m_renderables.insert(dynamic,&sphereMesh);
         m_color.insert(dynamic,color);
         m_scene->addActor(*dynamic);
-        setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eHOLE | FilterGroup::eRED_BOX | FilterGroup::eGROUND | FilterGroup::eSTEPPING_BOX);
+        setupFiltering(dynamic, FilterGroup::eBALL, FilterGroup::eHOLE | FilterGroup::eRED_BOX | FilterGroup::eSTEPPING_BOX);
         m_dynamicsMessage = "Number of Dynamics: " + QString::number(m_dyanmicsCount);
         return dynamic;
     }
@@ -318,7 +318,7 @@ PxRigidDynamic* World::createDynamicBox(const PxTransform& t, PxReal x, PxReal y
 
     PxRigidDynamic* body = m_physics->createRigidDynamic(t);
     body->attachShape(*shape);
-    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
+    PxRigidBodyExt::updateMassAndInertia(*body, 1.0f);
     if(!isTransparent)
         m_renderables.insert(body,&cubeMesh);
     if(!isShadows)
@@ -501,7 +501,7 @@ void World::setUpRoomOne()  {
 
     //create domino
     m_domino = createDynamicBox(PxTransform(PxVec3(0,  30,  -120.0f)), 10, 30, 2, false, 1);
-    setupFiltering(m_domino, FilterGroup::eGROUND, FilterGroup::eBALL);
+    setupFiltering(m_domino, FilterGroup::eRED_BOX, FilterGroup::eBALL);
     createDynamicBox(PxTransform(PxVec3(0,  40,  -140.0f)), 10, 40, 2, false, true, 2);
     createDynamicBox(PxTransform(PxVec3(0,  50,  -160.0f)), 10, 50, 2, false, true, 3);
     createDynamicBox(PxTransform(PxVec3(0,  50,  -180.0f)), 10, 50, 2, false, true, 4);
@@ -633,13 +633,18 @@ void World::setUpRoomTwo()  {
 
 void World::setUpRoomThree()  {
     //create pole for bball net
+
+    m_puzzles->level = 3;
+    m_playerController->setPosition(PxExtendedVec3(550,  10,  -40.0));
+
     PxMaterial * backboardMaterial = m_physics->createMaterial(.95,.95,0);
     PxMaterial * rimMaterial = m_physics->createMaterial(.1,.3,.5);
     createBox(PxTransform(PxVec3(550,0,-90)),20,100,10,m_material,0,false,false);
     createBox(PxTransform(PxVec3(550,50,-80),PxQuat(M_PI/8.0f,PxVec3(1,0,0))),10,2,20,m_material,false,false);
     createTriMesh(&backboardMesh,PxTransform(PxVec3(550,70,-80),PxQuat(-1.0f*M_PI/2.0f,PxVec3(0,1,0))),backboardMaterial,9,false,false);
     createTriMesh(&rimMesh,PxTransform(PxVec3(550,70,-80),PxQuat(-1.0f*M_PI/2.0f,PxVec3(0,1,0))),rimMaterial,1,false,false);
-//    createTriMesh(&discMesh,PxTransform(PxVec3(550,70,-80),PxQuat(-1.0f*M_PI/2.0f,PxVec3(0,1,0))),m_material,0,true,false);
+    m_rim = createBox(PxTransform(PxVec3(550,70,-73)),1.5,1,1.5,m_material,1,true,false);
+    setupFiltering(m_rim,FilterGroup::eHOLE,FilterGroup::eBALL);
 
 }
 
@@ -902,12 +907,13 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
 //                if(std::find(mMinesToExplode.begin(), mMinesToExplode.end(), mine) == mMinesToExplode.end())
 //                    mMinesToExplode.push_back(mine);
 //                break;
+
                 PxU32 tempFlag = contactFlag;
                 if(tempFlag == FilterGroup::eSTEPPING_BOX)
                     emit m_puzzles->puzzlesSolved("You have used the stepping box to pass through the hole");
 
                 contactFlag |= FilterGroup::eHOLE ;
-                if(m_puzzles->level == 1)
+                if(m_puzzles->level >= 1)
                 {
                     if(contactFlag & FilterGroup::eSTEPPING_BOX)
                         emit m_puzzles->puzzlesSolved("You have used the stepping box to pass through the hole");
@@ -918,13 +924,17 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
                     emit m_puzzles->puzzlesSolved("Find and hit the red box first!");
 
             }
+            else if((pairHeader.actors[0] == m_rim) || (pairHeader.actors[1] == m_rim))
+            {
+                emit m_puzzles->puzzlesSolved("You have put the ball through the basket.");
+            }
+
             else if((pairHeader.actors[0] == m_domino) || (pairHeader.actors[1] == m_domino))
             {
                 if((contactFlag & FilterGroup::eSTEPPING_BOX) && (contactFlag & FilterGroup::eHOLE ))
                 {
                     m_puzzles->level = 2;
                     emit m_puzzles->puzzlesSolved("You have finished this level");
-//                    m_camera.m_position = glm::vec3(-15.0,  40.0,  -120.0);
                     m_levelinfo = "Level 3 - Find the path to the next door";
 
 //                    m_scene->removeActor(*m_door,true);
@@ -981,13 +991,14 @@ PxControllerBehaviorFlags World::getBehaviorFlags(const PxObstacle &obstacle)
 
 void World::onContactModify(PxContactModifyPair *const pairs, PxU32 count)
 {
-    qDebug()<<m_puzzles->level;
     if(m_puzzles->level > 0 )
     {
         for(PxU32 i=0; i< count; i++)
         {
             pairs->contacts.ignore(i);
         }
+        qDebug()<<m_puzzles->level;
+
     }
 }
 
