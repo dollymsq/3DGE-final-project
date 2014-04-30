@@ -83,10 +83,16 @@ public:
     void tick(float seconds);
 
 
-    PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0), int color = 0);
+    PxRigidDynamic *createDynamic(const PxTransform &t, const PxGeometry &geometry, const PxVec3 &velocity = PxVec3(0), int color = 0, bool isShadow = true,bool isTrajectory = true);
 
     Puzzles *m_puzzles;
     bool m_puzzleSolved;
+
+    bool m_isBoulder = false;
+
+    bool m_gameOver = false;
+
+    void checkGameOver();
 
     void shootDynamic();
     void enableForward(bool flag);
@@ -143,6 +149,10 @@ private:
     void setUpRoomFive();
     void setUpRoomSix();
 
+    void resetGame();
+
+    float m_aspect;
+
     GLuint loadTexture(const QString &path);
 
     GLuint m_treeTexId;
@@ -161,6 +171,7 @@ private:
 
     QHash<const PxActor*,Renderable*> m_renderables;
     QSet<const PxActor*> m_shadows;
+    QSet<const PxActor*> m_balls;
     QVector<PxRigidActor*> m_renderableList;
     QVector<Tree*> m_trees;
     QHash<const PxActor*,int> m_color;
@@ -168,6 +179,7 @@ private:
     PxCooking *m_cooking;
 
     PxRigidDynamic          *m_redBlock;
+    PxRigidDynamic          *m_boulder;
     PxRigidDynamic          *m_domino;
     PxRigidStatic           *m_hole;
     PxRigidStatic           *m_rim;
