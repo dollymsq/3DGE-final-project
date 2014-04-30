@@ -538,7 +538,7 @@ void World::setUpRoomOne()  {
 //	desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
 //    desc.position = PxExtendedVec3(0.0f, 0.0f, 0.0f); //1400
 //    desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
-    desc.position = PxExtendedVec3(500.0f, 0.0f, 0.0f);
+    desc.position = PxExtendedVec3(2400.0f, 0.0f, 0.0f);
     desc.contactOffset			= .50f;
     desc.stepOffset			= 2.0f;
     desc.slopeLimit			= 0.00f;
@@ -653,7 +653,6 @@ void World::setUpRoomThree()  {
     //create pole for bball net
 
 //    m_playerController->setPosition(PxExtendedVec3(550,  10,  -40.0));
-    m_puzzles->level = 3;
 
     PxMaterial * backboardMaterial = m_physics->createMaterial(.95,.95,0);
     PxMaterial * rimMaterial = m_physics->createMaterial(.1,.3,.5);
@@ -661,7 +660,7 @@ void World::setUpRoomThree()  {
     createBox(PxTransform(PxVec3(550,50,-80),PxQuat(M_PI/8.0f,PxVec3(1,0,0))),10,2,20,m_material,false,false);
     createTriMesh(&backboardMesh,PxTransform(PxVec3(550,70,-80),PxQuat(-1.0f*M_PI/2.0f,PxVec3(0,1,0))),backboardMaterial,9,false,false);
     createTriMesh(&rimMesh,PxTransform(PxVec3(550,70,-80),PxQuat(-1.0f*M_PI/2.0f,PxVec3(0,1,0))),rimMaterial,1,false,false);
-    m_rim = createBox(PxTransform(PxVec3(550,70,-73)),1.5,1,1.5,m_material,1,true,false);
+    m_rim = createBox(PxTransform(PxVec3(550,70,-73)),1.5,0.1,1.5,m_material,1,true,false);
     setupFiltering(m_rim, FilterGroup::eHOLE, FilterGroup::eBALL);
 
 }
@@ -863,15 +862,25 @@ void World::tick(float seconds)
             m_puzzleSolved = 1;
             emit m_puzzles->OnePuzzleSolved("You have chosen the right path.");
             m_levelinfo = "Level 3 - Shoot the ball to uncover next level";
+            m_puzzles->level = 2;
         }
         else if(m_puzzleSolved == 1 && pos.x>= 1400)
         {
             m_puzzleSolved = 2;
             emit m_puzzles->OnePuzzleSolved("You have travelled through the cave.");
-            m_levelinfo = "Level 5 - ";
-        }
-//        std::cerr << glm::to_string(m_camera.m_position) << std::endl;
+            m_levelinfo = "Level 5 - Ranibow Slope";
+            m_puzzles->level = 4;
 
+        }
+        else if(m_puzzleSolved == 2 && pos.x>= 2400 && m_boulder->getGlobalPose().p.x - pos.x >= 100)
+        {
+            m_puzzleSolved = 3;
+            emit m_puzzles->OnePuzzleSolved("You have dodged the boulder.");
+            m_levelinfo = "Level 6 - Final Level";
+            m_puzzles->level = 5;
+        }
+
+//        std::cerr << glm::to_string(m_camera.m_position) << std::endl;
 //        std::cerr << glm::to_string(m_camera.m_position) << std::endl;
         checkGameOver();
         m_camera.update(seconds);
@@ -1102,6 +1111,7 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
                 m_renderableList.append(m_transptWall->isRigidActor());
 
                 m_levelinfo = "Level 4 - The Cave(don't get stuck!)";
+                m_puzzles->level = 3;
             }
 
             else if((pairHeader.actors[0] == m_domino) || (pairHeader.actors[1] == m_domino))
@@ -1112,6 +1122,7 @@ void World::onContact(const PxContactPairHeader& pairHeader, const PxContactPair
                     m_puzzles->level = 2;
                     emit m_puzzles->puzzlesSolved("You have finished this level");
                     m_levelinfo = "Level 2 - Find the path to the next scene";
+                    m_puzzles->level = 1;
 
                     m_scene->removeActor(*m_door,true);
                 }
@@ -1173,8 +1184,6 @@ void World::onContactModify(PxContactModifyPair *const pairs, PxU32 count)
         {
             pairs->contacts.ignore(i);
         }
-        qDebug()<<m_puzzles->level;
-
     }
 }
 
