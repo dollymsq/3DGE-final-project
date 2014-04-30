@@ -131,6 +131,7 @@ void World::init(float aspectRatio)
     setUpRoomOne();
     setUpRoomTwo();
     setUpRoomThree();
+    setUpRoomFour();
 
     PxTransform pose;
     pose.p = PxVec3(0,0,0);
@@ -522,7 +523,8 @@ void World::setUpRoomOne()  {
 	const float gControllerRadius	= 0.3f * gScaleFactor;
 
     PxCapsuleControllerDesc desc;
-	desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
+//	desc.position = PxExtendedVec3(50.0f, 50.0f, 50.0f);
+    desc.position = PxExtendedVec3(550.0f, 0.0f, 0.0f);
     desc.contactOffset			= 0.05f;
     desc.stepOffset			= 0.01;
     desc.slopeLimit			= 0.5f;
@@ -622,6 +624,8 @@ void World::setUpRoomTwo()  {
 //    }
     createBox(PxTransform(PxVec3(currentLoc+100,-100-1e-1,0)),100,100,100,m_material);
 
+    //room four
+    createBox(PxTransform(PxVec3(currentLoc+400,-100-1e-1,0)),100,100,100,m_material);
     //tree
 //    Tree *t = new Tree(glm::vec3(200,0,0));
 //    t->generate(LParser::testTree());
@@ -645,6 +649,10 @@ void World::setUpRoomThree()  {
     createTriMesh(&rimMesh,PxTransform(PxVec3(550,70,-80),PxQuat(-1.0f*M_PI/2.0f,PxVec3(0,1,0))),rimMaterial,1,false,false);
     m_rim = createBox(PxTransform(PxVec3(550,70,-73)),1.5,1,1.5,m_material,1,true,false);
     setupFiltering(m_rim,FilterGroup::eHOLE,FilterGroup::eBALL);
+
+}
+
+void World::setUpRoomFour() {
 
 }
 
@@ -780,11 +788,13 @@ void World::renderGeometry(const PxGeometryHolder& h, Renderable *r)
 
 void World::tick(float seconds)
 {
-    if (m_playerController != NULL) {
+//    if (m_playerController != NULL) {
         const PxExtendedVec3 &pos = m_playerController->getPosition();
         m_camera.m_position.x = pos.x;
         m_camera.m_position.y = pos.y;
         m_camera.m_position.z = pos.z;
+
+        std::cerr << glm::to_string(m_camera.m_position) << std::endl;
 
         m_camera.update(seconds);
         PxVec3 disp(m_camera.m_position.x - pos.x,
@@ -792,9 +802,10 @@ void World::tick(float seconds)
                     m_camera.m_position.z - pos.z);
         disp += PxVec3(0, -0.8f, 0);
 
+
 //        std::cout << glm::to_string(m_camera.m_position) << std::endl;
         m_playerController->move(disp, 0.1f, seconds, NULL, NULL);
-    }
+//    }
 
     stepPhysics(true);
 }
